@@ -1,0 +1,97 @@
+<?php
+require __DIR__ . '/../shared/config.php';
+$user = require_auth();
+$rest = current_restaurant($user);
+
+$catCount   = (int)(db()->query('SELECT COUNT(*) FROM categories WHERE restaurant_id = ' . (int)$rest['id'])->fetchColumn());
+$dishCount  = (int)(db()->query('SELECT COUNT(*) FROM dishes     WHERE restaurant_id = ' . (int)$rest['id'])->fetchColumn());
+$availCount = (int)(db()->query('SELECT COUNT(*) FROM dishes     WHERE restaurant_id = ' . (int)$rest['id'] . ' AND available = 1')->fetchColumn());
+$outCount   = $dishCount - $availCount;
+
+$recent = db()->prepare('SELECT d.*, c.name AS cat FROM dishes d LEFT JOIN categories c ON c.id = d.category_id WHERE d.restaurant_id = ? ORDER BY d.id DESC LIMIT 6');
+$recent->execute([$rest['id']]);
+$recent = $recent->fetchAll();
+
+try {
+  $todayResv = db()->prepare("SELECT * FROM reservations WHERE restaurant_id = ? AND date = date('now') ORDER BY time");
+  $todayResv->execute([$rest['id']]);
+  $todayResv = $todayResv->fetchAll();
+  $pendingResv = (int)(db()->query("SELECT COUNT(*) FROM reservations WHERE restaurant_id = " . (int)$rest['id'] . " AND status = 'pending'")->fetchColumn());
+  $activePromo = (int)(db()->query("SELECT COUNT(*) FROM promotions WHERE restaurant_id = " . (int)$rest['id'] . " AND active = 1")->fetchColumn());
+} catch (Throwable $e) {
+  $todayResv = []; $pendingResv = 0; $activePromo = 0;
+}
+
+$PAGE_TITLE = 'Tableau de bord';
+$ACTIVE     = 'dashboard';
+require __DIR__ . '/../shared/layout.php';
+?>
+
+<div class="page-head">
+  <div>
+    <h1>Bonjour <?= e(explode(' ', $user['display_name'] ?: 'Admin')[0]) ?> <span class="star">★</span></h1>
+    <div class="sub">Voici l'état de votre menu digital.</div>
+  </div>
+  <a class="btn-primary" href="/admin/dishes.php?new=1">+ Ajouter un plat</a>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="lbl">Plats au total</div><div class="val"><?= $dishCount ?></div><div class="delta badge badge-gold"><?= $catCount ?> catégories</div></div>
+  <div class="stat"><div class="lbl">Disponibles</div><div class="val" style="color:var(--green-2);"><?= $availCount ?></div><div class="delta badge badge-ok">En ligne</div></div>
+  <div class="stat"><div class="lbl">Réservations</div><div class="val" style="color:#8b5a00;"><?= count($todayResv) ?></div><div class="delta badge badge-gold"><?= $pendingResv ?> en attente</div></div>
+  <div class="stat"><div class="lbl">Promotions actives</div><div class="val" style="color:var(--accent);"><?= $activePromo ?></div><div class="delta badge badge-gold">Live</div></div>
+</div>
+
+<?php if ($todayResv): ?>
+<h2 style="font-size:18px;font-weight:800;margin:10px 2px 14px;">Réservations aujourd'hui</h2>
+<div class="table-wrap" style="margin-bottom:26px;">
+  <table>
+    <thead><tr><th>Heure</th><th>Client</th><th>Taille</th><th>Statut</th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($todayResv as $r):
+      $badge = match ($r['status']) { 'confirmed' => 'badge-ok', 'cancelled' => 'badge-bad', default => 'badge-gold' };
+      $label = ['pending' => 'En attente', 'confirmed' => 'Confirmée', 'cancelled' => 'Annulée'][$r['status']] ?? $r['status'];
+    ?>
+      <tr>
+        <td style="font-weight:800;color:var(--accent);"><?= e($r['time']) ?></td>
+        <td><div style="font-weight:700;"><?= e($r['name']) ?></div><div style="color:var(--muted-ink);font-size:12px;"><a href="tel:<?= e($r['phone']) ?>" style="color:inherit;"><?= e($r['phone']) ?></a></div></td>
+        <td><span class="badge badge-gold"><?= (int)$r['party_size'] ?> pers.</span></td>
+        <td><span class="badge <?= e($badge) ?>"><?= e($label) ?></span></td>
+        <td style="text-align:right;"><a class="icon-btn" href="/admin/reservations.php" title="Gérer">→</a></td>
+      </tr>
+    <?php endforeach; ?>
+    </tbody>
+  </table>
+</div>
+<?php endif; ?>
+
+<h2 style="font-size:18px;font-weight:800;margin:10px 2px 14px;">Derniers plats ajoutés</h2>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Plat</th><th>Catégorie</th><th>Prix</th><th>État</th><th></th></tr></thead>
+    <tbody>
+    <?php if (!$recent): ?>
+      <tr><td colspan="5" style="text-align:center;padding:40px 16px;color:var(--muted-ink);">Aucun plat pour le moment. <a style="color:var(--accent);font-weight:700;" href="/admin/dishes.php?new=1">Ajoutez-en un</a>.</td></tr>
+    <?php else: foreach ($recent as $d): ?>
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="thumb">
+              <?php if ($d['photo']): ?><img src="<?= e(UPLOADS_URL . '/' . $d['photo']) ?>" alt=""><?php else: ?><span>★</span><?php endif; ?>
+            </div>
+            <div><b><?= e($d['name']) ?></b></div>
+          </div>
+        </td>
+        <td><?= e($d['cat'] ?? '—') ?></td>
+        <td class="price" style="font-size:14px;"><?= e(money((float)$d['price'])) ?></td>
+        <td><?= $d['available'] ? '<span class="badge badge-ok">Disponible</span>' : '<span class="badge badge-bad">Épuisé</span>' ?></td>
+        <td class="row-actions">
+          <a class="icon-btn" href="/admin/dishes.php?edit=<?= (int)$d['id'] ?>" title="Modifier">✎</a>
+        </td>
+      </tr>
+    <?php endforeach; endif; ?>
+    </tbody>
+  </table>
+</div>
+
+<?php require __DIR__ . '/../shared/layout_foot.php';
