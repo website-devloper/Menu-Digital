@@ -266,26 +266,33 @@ html[dir="rtl"] .cust-current-dish-banner {
 
 /* Center Brand */
 .brand-center {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   text-decoration: none;
   color: inherit;
-  padding: 4px 8px;
+  padding: 4px 6px;
+  transition: transform .15s, opacity .15s;
+}
+.brand-center:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+.brand-logo-img {
+  height: 27px;
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 .brand-wevtex-logo {
   font-family: 'Plus Jakarta Sans', var(--font-sans), sans-serif;
-  font-size: 23px;
+  font-size: 22px;
   font-weight: 800;
-  letter-spacing: -0.035em;
-  color: var(--accent-terracotta);
+  letter-spacing: -0.03em;
+  color: #19201B;
   line-height: 1;
   text-transform: lowercase;
-  transition: transform .15s, opacity .15s;
-}
-.brand-center:active .brand-wevtex-logo {
-  transform: scale(0.96);
-  opacity: 0.85;
 }
 
 /* Top Right Actions */
@@ -1900,6 +1907,7 @@ html[dir="rtl"] .cust-current-dish-banner {
 
     <!-- Center Brand Logo (wevtex) -->
     <a href="/menu.php?r=<?= urlencode($rest['slug']) ?>" class="brand-center" aria-label="wevtex">
+      <img src="/assets/wevtex-mark.png" alt="Wevtex" class="brand-logo-img">
       <span class="brand-wevtex-logo">wevtex</span>
     </a>
 
@@ -2135,7 +2143,10 @@ html[dir="rtl"] .cust-current-dish-banner {
       <p class="footer-copy">© <?= date('Y') ?> <?= e($rest['name'] ?: 'Maison Sola') ?>. <span id="footerAllRights">Tous droits réservés.</span></p>
       <div class="footer-powered">
         <span id="footerPoweredTxt">Propulsé avec élégance par</span>
-        <strong style="color:var(--accent-terracotta);">Wevtex</strong>
+        <a href="https://wevtex.com" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:#FFFFFF;vertical-align:middle;margin-left:4px;">
+          <img src="/assets/wevtex-mark-light.png" alt="Wevtex" style="height:17px;width:auto;">
+          <strong style="color:#FFFFFF;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;letter-spacing:-0.02em;">wevtex</strong>
+        </a>
       </div>
     </div>
   </div>
