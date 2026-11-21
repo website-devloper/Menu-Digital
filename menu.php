@@ -267,33 +267,25 @@ html[dir="rtl"] .cust-current-dish-banner {
 /* Center Brand */
 .brand-center {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
-  color: inherit;
-}
-.brand-symbol {
-  display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1px;
+  text-decoration: none;
+  color: inherit;
+  padding: 4px 8px;
 }
-.brand-symbol svg { width: 28px; height: 14px; fill: #B8532F; }
-.brand-sub {
-  font-family: var(--font-logo);
-  font-size: 10.5px;
-  letter-spacing: 0.22em;
-  color: #8C7569;
-  font-weight: 700;
-  line-height: 1;
-}
-.brand-title {
-  font-family: var(--font-logo);
-  font-size: 19px;
-  letter-spacing: 0.12em;
-  color: #B8532F;
+.brand-wevtex-logo {
+  font-family: 'Plus Jakarta Sans', var(--font-sans), sans-serif;
+  font-size: 23px;
   font-weight: 800;
-  line-height: 1.1;
+  letter-spacing: -0.035em;
+  color: var(--accent-terracotta);
+  line-height: 1;
+  text-transform: lowercase;
+  transition: transform .15s, opacity .15s;
+}
+.brand-center:active .brand-wevtex-logo {
+  transform: scale(0.96);
+  opacity: 0.85;
 }
 
 /* Top Right Actions */
@@ -1906,15 +1898,9 @@ html[dir="rtl"] .cust-current-dish-banner {
       </div>
     </div>
 
-    <!-- Center Brand Logo (MAISON SOLA) -->
-    <a href="/menu.php?r=<?= urlencode($rest['slug']) ?>" class="brand-center">
-      <div class="brand-symbol">
-        <svg viewBox="0 0 24 14">
-          <path d="M12 1C12.4 2.8 14.2 4.2 16 4.2C14.2 5.2 13.2 6.5 13.2 8.2C14.2 9.5 16 10 17.8 10C16 11.2 15.2 12.5 14.8 14C14.4 12.5 13 11.6 11.2 11.6C11.6 10 10.8 8.4 9.4 7.6C10.8 7.6 11.6 6.3 11.6 5C11.2 3.2 11.6 2 12 1Z"/>
-        </svg>
-      </div>
-      <div class="brand-sub">MAISON</div>
-      <div class="brand-title"><?= strtoupper(e($rest['name'] ?? 'SOLA')) ?></div>
+    <!-- Center Brand Logo (wevtex) -->
+    <a href="/menu.php?r=<?= urlencode($rest['slug']) ?>" class="brand-center" aria-label="wevtex">
+      <span class="brand-wevtex-logo">wevtex</span>
     </a>
 
     <!-- Right Actions -->
