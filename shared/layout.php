@@ -4,6 +4,7 @@
 
 $NAV = [
   ['dashboard',    'Tableau de bord', '/admin/',                 'grid'],
+  ['orders',       'Commandes',       '/admin/orders.php',       'shopping-bag'],
   ['categories',   'Catégories',      '/admin/categories.php',   'layers'],
   ['dishes',       'Plats',           '/admin/dishes.php',       'utensils'],
   ['reservations', 'Réservations',    '/admin/reservations.php', 'calendar'],
@@ -16,8 +17,9 @@ $NAV = [
 function nav_icon(string $k): string {
   $s = 'width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   return match($k) {
-    'grid'     => "<svg $s><rect x='3' y='3' width='7' height='7' rx='1'/><rect x='14' y='3' width='7' height='7' rx='1'/><rect x='3' y='14' width='7' height='7' rx='1'/><rect x='14' y='14' width='7' height='7' rx='1'/></svg>",
-    'layers'   => "<svg $s><path d='m12 2 10 5-10 5-10-5z'/><path d='m2 12 10 5 10-5'/><path d='m2 17 10 5 10-5'/></svg>",
+    'grid'         => "<svg $s><rect x='3' y='3' width='7' height='7' rx='1'/><rect x='14' y='3' width='7' height='7' rx='1'/><rect x='3' y='14' width='7' height='7' rx='1'/><rect x='14' y='14' width='7' height='7' rx='1'/></svg>",
+    'shopping-bag' => "<svg $s><path d='M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z'/><path d='M3 6h18'/><path d='M16 10a4 4 0 0 1-8 0'/></svg>",
+    'layers'       => "<svg $s><path d='m12 2 10 5-10 5-10-5z'/><path d='m2 12 10 5 10-5'/><path d='m2 17 10 5 10-5'/></svg>",
     'utensils' => "<svg $s><path d='M3 2v7a3 3 0 0 0 6 0V2'/><path d='M6 11v11'/><path d='M17 2v20'/><path d='M14 2h6a0 0 0 0 1 0 0v6a3 3 0 0 1-3 3h-3V2z'/></svg>",
     'qr'       => "<svg $s><rect x='3' y='3' width='7' height='7' rx='1'/><rect x='14' y='3' width='7' height='7' rx='1'/><rect x='3' y='14' width='7' height='7' rx='1'/><path d='M14 14h3v3h-3zM18 18h3v3h-3zM14 18h3v3h-3z'/></svg>",
     'camera'   => "<svg $s><path d='M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z'/><circle cx='12' cy='13' r='4'/></svg>",
@@ -144,10 +146,20 @@ function nav_icon(string $k): string {
     <div>
       <div class="nav-section-title">Menu principal</div>
       <ul class="nav-list">
-        <?php foreach ($NAV as $it): [$k, $label, $href, $icon] = $it; ?>
+        <?php foreach ($NAV as $it): [$k, $label, $href, $icon] = $it;
+          $pendingBadge = '';
+          if ($k === 'orders') {
+            try {
+              $pCnt = (int)db()->query("SELECT COUNT(*) FROM orders WHERE restaurant_id = " . (int)$rest['id'] . " AND status = 'pending'")->fetchColumn();
+              if ($pCnt > 0) {
+                $pendingBadge = '<span class="badge" style="background:#E11D48;color:#fff;font-size:11px;font-weight:800;border-radius:10px;padding:2px 7px;margin-left:auto;">' . $pCnt . '</span>';
+              }
+            } catch (Throwable $e) {}
+          }
+        ?>
           <li>
             <a class="nav-link <?= $ACTIVE === $k ? 'active' : '' ?>" href="<?= e($href) ?>">
-              <?= nav_icon($icon) ?><span><?= e($label) ?></span>
+              <?= nav_icon($icon) ?><span><?= e($label) ?></span><?= $pendingBadge ?>
             </a>
           </li>
         <?php endforeach; ?>

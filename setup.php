@@ -5,59 +5,127 @@
 require __DIR__ . '/shared/config.php';
 
 $pdo = db();
+$isPg = ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'pgsql');
+$pk = $isPg ? 'SERIAL PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+$ts = $isPg ? 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP' : 'TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP';
 
 $pdo->exec("
 CREATE TABLE IF NOT EXISTS restaurants (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  id          $pk,
   slug        TEXT    UNIQUE NOT NULL,
   name        TEXT    NOT NULL,
   tagline     TEXT,
   logo        TEXT,
   currency    TEXT    NOT NULL DEFAULT 'DH',
-  created_at  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
+  phone       TEXT,
+  hours       TEXT,
+  address     TEXT,
+  created_at  $ts
 );
 
 CREATE TABLE IF NOT EXISTS users (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  id            $pk,
   restaurant_id INTEGER NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
   email         TEXT    UNIQUE NOT NULL,
   password_hash TEXT    NOT NULL,
   display_name  TEXT,
-  created_at    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at    $ts
 );
 
 CREATE TABLE IF NOT EXISTS categories (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  id            $pk,
   restaurant_id INTEGER NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
   name          TEXT    NOT NULL,
+  name_en       TEXT    DEFAULT '',
+  name_ar       TEXT    DEFAULT '',
   position      INTEGER NOT NULL DEFAULT 0,
-  created_at    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at    $ts
 );
 
 CREATE TABLE IF NOT EXISTS dishes (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  id            $pk,
   restaurant_id INTEGER NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
   category_id   INTEGER REFERENCES categories(id) ON DELETE SET NULL,
   name          TEXT    NOT NULL,
+  name_en       TEXT    DEFAULT '',
+  name_ar       TEXT    DEFAULT '',
   description   TEXT,
+  description_en TEXT   DEFAULT '',
+  description_ar TEXT   DEFAULT '',
   price         REAL    NOT NULL DEFAULT 0,
   photo         TEXT,
   available     INTEGER NOT NULL DEFAULT 1,
   position      INTEGER NOT NULL DEFAULT 0,
-  created_at    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
+  flags         TEXT    DEFAULT '',
+  spice         INTEGER DEFAULT 0,
+  is_special    INTEGER DEFAULT 0,
+  options       TEXT,
+  created_at    $ts
+);
+
+CREATE TABLE IF NOT EXISTS dish_photos (
+  id       $pk,
+  dish_id  INTEGER NOT NULL REFERENCES dishes(id) ON DELETE CASCADE,
+  photo    TEXT    NOT NULL,
+  position INTEGER NOT NULL DEFAULT 0,
+  is_cover INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS reservations (
+  id             $pk,
+  restaurant_id  INTEGER NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
+  name           TEXT    NOT NULL,
+  phone          TEXT    NOT NULL,
+  email          TEXT,
+  party_size     INTEGER NOT NULL,
+  date           TEXT    NOT NULL,
+  time           TEXT    NOT NULL,
+  notes          TEXT,
+  status         TEXT    NOT NULL DEFAULT 'pending',
+  created_at     $ts
+);
+
+CREATE TABLE IF NOT EXISTS promotions (
+  id             $pk,
+  restaurant_id  INTEGER NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
+  name           TEXT    NOT NULL,
+  scope_type     TEXT    NOT NULL DEFAULT 'all',
+  scope_id       INTEGER,
+  discount_pct   REAL    NOT NULL DEFAULT 0,
+  start_date     TEXT,
+  end_date       TEXT,
+  start_time     TEXT,
+  end_time       TEXT,
+  days_mask      INTEGER NOT NULL DEFAULT 127,
+  active         INTEGER NOT NULL DEFAULT 1,
+  created_at     $ts
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+  id             $pk,
+  restaurant_id  INTEGER NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
+  table_number   TEXT NOT NULL,
+  customer_name  TEXT DEFAULT '',
+  items_json     TEXT NOT NULL,
+  total_amount   REAL NOT NULL DEFAULT 0,
+  status         TEXT NOT NULL DEFAULT 'pending',
+  notes          TEXT DEFAULT '',
+  created_at     $ts
 );
 
 CREATE INDEX IF NOT EXISTS idx_cat_rest  ON categories(restaurant_id, position);
 CREATE INDEX IF NOT EXISTS idx_dish_rest ON dishes(restaurant_id, category_id, position);
+CREATE INDEX IF NOT EXISTS idx_photos_dish ON dish_photos(dish_id, position);
+CREATE INDEX IF NOT EXISTS idx_orders_rest ON orders(restaurant_id, created_at DESC);
 ");
 
 $restCount = (int)$pdo->query('SELECT COUNT(*) FROM restaurants')->fetchColumn();
 $seeded = false;
 
 if ($restCount === 0) {
-    $pdo->prepare("INSERT INTO restaurants (slug, name, tagline) VALUES (?,?,?)")
-        ->execute(['foores', 'Foores', 'Cuisine marocaine contemporaine']);
-    $rid = (int)$pdo->lastInsertId();
+    $pdo->prepare("INSERT INTO restaurants (slug, name, tagline, phone, address) VALUES (?,?,?,?,?)")
+        ->execute(['foores', 'Foores', 'Cuisine marocaine contemporaine', '+212 5 24 00 00 00', '12 rue des Jardins, Marrakech']);
+    $rid = (int)$pdo->query("SELECT id FROM restaurants WHERE slug = 'foores'")->fetchColumn();
 
     $pdo->prepare("INSERT INTO users (restaurant_id, email, password_hash, display_name) VALUES (?,?,?,?)")
         ->execute([$rid, 'admin@foores.ma', password_hash('admin1234', PASSWORD_DEFAULT), 'Admin Foores']);
@@ -109,7 +177,7 @@ body{display:grid;place-items:center;min-height:100vh;padding:24px;}
 </head><body>
 <div class="panel">
   <h1 style="font-size:26px;margin-bottom:6px;">Installation terminée <span class="star">★</span></h1>
-  <p style="color:var(--muted-ink);margin-bottom:20px;">Base de données initialisée à <span class="k"><?= e(DB_PATH) ?></span>.</p>
+  <p style="color:var(--muted-ink);margin-bottom:20px;">Base de données initialisée : <span class="k"><?= e(DATABASE_URL ? 'Neon PostgreSQL (' . parse_url(DATABASE_URL, PHP_URL_HOST) . ')' : DB_PATH) ?></span>.</p>
 
   <?php if ($seeded): ?>
     <p class="ok">Un restaurant démo a été créé :</p>

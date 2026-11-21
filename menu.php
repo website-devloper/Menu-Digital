@@ -2322,33 +2322,78 @@ html[dir="rtl"] .cust-current-dish-banner {
 
     <!-- Scrollable Body -->
     <div class="cart-sheet-scroll-body">
-      <!-- Dish Items Cards -->
-      <div id="cartItemsList">
-        <p style="color:var(--text-muted); text-align:center; padding: 24px 0;" id="cartEmptyNotice">Votre panier est actuellement vide.</p>
-      </div>
-
-      <!-- Total Row -->
-      <div class="cart-total-header-row" id="cartTotalBox" style="display:none;">
-        <span class="cart-total-title-txt" id="cartTotalLabel">Total :</span>
-        <span class="cart-total-sum-txt" id="cartTotalSum">0 <?= e($CURRENCY) ?></span>
-      </div>
-
-      <!-- Vos Informations Section -->
-      <div class="cart-user-info-section" id="cartCustomerSection" style="display:none;">
-        <h3 class="cart-user-info-title" id="cartInfoHeading">Vos Informations</h3>
-
-        <div class="cart-form-group">
-          <label class="cart-form-label" id="cartNameLabel">Nom complet</label>
-          <input type="text" class="cart-clean-input" id="cartCustomerName" placeholder="Votre nom" autocomplete="name">
+      <!-- Active Cart Content -->
+      <div id="cartActiveContent">
+        <!-- Dish Items Cards -->
+        <div id="cartItemsList">
+          <p style="color:var(--text-muted); text-align:center; padding: 24px 0;" id="cartEmptyNotice">Votre panier est actuellement vide.</p>
         </div>
 
-        <div class="cart-form-group">
-          <label class="cart-form-label" id="cartTableLabel">Numéro de table <span style="color:var(--accent-terracotta);">*</span></label>
-          <input type="text" class="cart-clean-input" id="cartTableNumber" placeholder="Ex: Table 4" value="<?= e($tableParam) ?>" autocomplete="off">
+        <!-- Total Row -->
+        <div class="cart-total-header-row" id="cartTotalBox" style="display:none;">
+          <span class="cart-total-title-txt" id="cartTotalLabel">Total :</span>
+          <span class="cart-total-sum-txt" id="cartTotalSum">0 <?= e($CURRENCY) ?></span>
         </div>
 
-        <button type="button" class="cart-confirm-cta-btn" id="btnCheckout" onclick="proceedToOrder()">
-          <span id="btnCheckoutText">Confirmer la commande</span>
+        <!-- Vos Informations Section -->
+        <div class="cart-user-info-section" id="cartCustomerSection" style="display:none;">
+          <h3 class="cart-user-info-title" id="cartInfoHeading">Vos Informations</h3>
+
+          <div class="cart-form-group">
+            <label class="cart-form-label" id="cartNameLabel">Nom complet</label>
+            <input type="text" class="cart-clean-input" id="cartCustomerName" placeholder="Votre nom" autocomplete="name">
+          </div>
+
+          <div class="cart-form-group">
+            <label class="cart-form-label" id="cartTableLabel">Numéro de table <span style="color:var(--accent-terracotta);">*</span></label>
+            <input type="text" class="cart-clean-input" id="cartTableNumber" placeholder="Ex: Table 4" value="<?= e($tableParam) ?>" autocomplete="off">
+          </div>
+
+          <button type="button" class="cart-confirm-cta-btn" id="btnCheckout" onclick="proceedToOrder()">
+            <span id="btnCheckoutText">Confirmer la commande</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Order Success View (shown after confirming order directly to admin) -->
+      <div id="cartSuccessView" style="display:none; padding: 24px 8px; text-align: center;">
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: #DCFCE7; color: #16A34A; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+          <svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h3 style="font-family: var(--font-serif); font-size: 24px; font-weight: 700; color: var(--text-dark); margin: 0 0 8px;" id="orderSuccessTitle">
+          Commande confirmée !
+        </h3>
+        <p style="font-size: 14.5px; color: #6E6862; line-height: 1.5; margin: 0 0 22px;" id="orderSuccessSub">
+          Votre commande a été transmise directement en cuisine. Notre équipe s'occupe de la préparation.
+        </p>
+
+        <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: 18px; padding: 16px; text-align: left; margin-bottom: 22px; box-shadow: 0 2px 10px rgba(0,0,0,0.035);">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 14px;">
+            <span style="color: #8C827A;">Statut :</span>
+            <span style="font-weight: 700; color: #16A34A; background: #DCFCE7; padding: 2px 8px; border-radius: 99px; font-size: 12px;">En cuisine 🍳</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 14px;">
+            <span style="color: #8C827A;">Table :</span>
+            <strong id="successTableNum" style="color: var(--text-dark);">Table</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 14px;">
+            <span style="color: #8C827A;">Numéro de commande :</span>
+            <strong id="successOrderNum" style="color: var(--accent-terracotta);">#---</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px dashed rgba(0,0,0,0.08); font-size: 16px;">
+            <span style="font-weight: 700; color: var(--text-dark);">Total :</span>
+            <strong id="successTotalSum" style="font-weight: 800; color: var(--text-dark);">0 DH</strong>
+          </div>
+        </div>
+
+        <button type="button" class="cart-confirm-cta-btn" onclick="resetAndCloseCartModal()" style="margin-bottom: 12px;">
+          <span id="orderSuccessBtnBack">Commander autre chose</span>
+        </button>
+
+        <button type="button" id="btnWaReceipt" style="width: 100%; background: transparent; border: 1px solid rgba(0,0,0,0.12); color: #19201B; padding: 12px; border-radius: 9999px; font-weight: 600; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="sendWhatsAppReceipt()">
+          <span>💬</span> <span id="orderSuccessBtnWa">Recevoir une copie sur WhatsApp</span>
         </button>
       </div>
     </div>
@@ -2412,7 +2457,11 @@ const I18N = {
     cart_table_lbl: "Numéro de table",
     cart_table_placeholder: "Ex: Table 4",
     cart_confirm_cmd: "Confirmer la commande",
-    cart_empty_msg: "Votre panier est actuellement vide."
+    cart_empty_msg: "Votre panier est actuellement vide.",
+    order_success_title: "Commande confirmée !",
+    order_success_sub: "Votre commande a été transmise en cuisine. Notre équipe s'occupe de la préparation.",
+    order_btn_back: "Commander autre chose",
+    order_btn_wa_copy: "Recevoir une copie sur WhatsApp"
   },
   en: {
     specialties: "Our Specialties",
@@ -2457,7 +2506,11 @@ const I18N = {
     cart_table_lbl: "Table Number",
     cart_table_placeholder: "e.g. Table 4",
     cart_confirm_cmd: "Confirm Order",
-    cart_empty_msg: "Your cart is currently empty."
+    cart_empty_msg: "Your cart is currently empty.",
+    order_success_title: "Order Confirmed!",
+    order_success_sub: "Your order has been sent directly to the kitchen. Our team is preparing your dishes.",
+    order_btn_back: "Order something else",
+    order_btn_wa_copy: "Receive a copy on WhatsApp"
   },
   ar: {
     specialties: "أطباقنا المميزة",
@@ -2502,7 +2555,11 @@ const I18N = {
     cart_table_lbl: "رقم الطاولة",
     cart_table_placeholder: "مثال: طاولة 4",
     cart_confirm_cmd: "تأكيد الطلبية",
-    cart_empty_msg: "سلتك فارغة حالياً."
+    cart_empty_msg: "سلتك فارغة حالياً.",
+    order_success_title: "تم تأكيد طلبيتك بنجاح !",
+    order_success_sub: "تم إرسال طلبيتك مباشرة إلى المطبخ. فريقنا يعمل على تحضيرها الآن.",
+    order_btn_back: "طلب وجبات أخرى",
+    order_btn_wa_copy: "الحصول على نسخة عبر واتساب"
   }
 };
 
@@ -2827,6 +2884,18 @@ function applyLanguage() {
 
   const btnCheckoutText = document.getElementById('btnCheckoutText');
   if (btnCheckoutText) btnCheckoutText.innerText = dict.cart_confirm_cmd || dict.whatsapp_order || 'Confirmer la commande';
+
+  const orderSuccessTitle = document.getElementById('orderSuccessTitle');
+  if (orderSuccessTitle) orderSuccessTitle.innerText = dict.order_success_title || 'Commande confirmée !';
+
+  const orderSuccessSub = document.getElementById('orderSuccessSub');
+  if (orderSuccessSub) orderSuccessSub.innerText = dict.order_success_sub || 'Votre commande a été transmise directement en cuisine.';
+
+  const orderSuccessBtnBack = document.getElementById('orderSuccessBtnBack');
+  if (orderSuccessBtnBack) orderSuccessBtnBack.innerText = dict.order_btn_back || 'Commander autre chose';
+
+  const orderSuccessBtnWa = document.getElementById('orderSuccessBtnWa');
+  if (orderSuccessBtnWa) orderSuccessBtnWa.innerText = dict.order_btn_wa_copy || 'Recevoir une copie sur WhatsApp';
 
   const custQtyLabel = document.getElementById('custQtyLabel');
   if (custQtyLabel) custQtyLabel.innerText = dict.qty;
@@ -3469,7 +3538,9 @@ function filterDishesBySearch(q) {
   });
 }
 
-function proceedToOrder() {
+let lastConfirmedOrder = null;
+
+async function proceedToOrder() {
   const items = Object.values(cart);
   if (items.length === 0) {
     showToast('Votre panier est vide.');
@@ -3478,6 +3549,8 @@ function proceedToOrder() {
 
   const tableInput = document.getElementById('cartTableNumber');
   const nameInput = document.getElementById('cartCustomerName');
+  const btnCheckout = document.getElementById('btnCheckout');
+  const btnText = document.getElementById('btnCheckoutText');
 
   const tableVal = tableInput ? tableInput.value.trim() : '';
   const nameVal = nameInput ? nameInput.value.trim() : '';
@@ -3496,31 +3569,109 @@ function proceedToOrder() {
     return;
   }
 
-  const lang = currentLang;
-  const isAr = lang === 'ar';
-  const isEn = lang === 'en';
+  const totalSum = items.reduce((sum, it) => sum + (it.qty * it.price), 0);
+
+  // Disable button while transmitting
+  if (btnCheckout) {
+    btnCheckout.disabled = true;
+    btnCheckout.style.opacity = '0.7';
+    if (btnText) btnText.innerText = (currentLang === 'ar' ? 'جاري الإرسال للمطبخ...' : 'Transmission en cuisine...');
+  }
+
+  try {
+    const payload = {
+      restaurant_slug: <?= json_encode($rest['slug'] ?? 'maison-sola') ?>,
+      table_number: tableVal,
+      customer_name: nameVal,
+      items: items.map(it => ({
+        id: it.id,
+        name: (typeof getDishName === 'function') ? getDishName(it.id) : (it.name || ''),
+        price: it.price,
+        qty: it.qty,
+        customSummary: it.customSummary || ''
+      })),
+      total_amount: totalSum
+    };
+
+    const res = await fetch('/order_submit.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      lastConfirmedOrder = {
+        orderId: data.order_id,
+        table: tableVal,
+        name: nameVal,
+        items: items,
+        total: totalSum
+      };
+
+      // Reset cart
+      cart = {};
+      localStorage.removeItem('maison_sola_cart');
+      updateCartUI();
+
+      // Show success screen inside sheet
+      document.getElementById('cartActiveContent').style.display = 'none';
+      const successView = document.getElementById('cartSuccessView');
+      document.getElementById('successTableNum').innerText = tableVal;
+      document.getElementById('successOrderNum').innerText = `#${data.order_id}`;
+      document.getElementById('successTotalSum').innerText = `${totalSum.toLocaleString('fr-FR')} ${CURRENCY}`;
+      successView.style.display = 'block';
+
+      if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
+    } else {
+      alert(data.error || 'Erreur lors de la transmission.');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Erreur réseau. Veuillez réessayer.');
+  } finally {
+    if (btnCheckout) {
+      btnCheckout.disabled = false;
+      btnCheckout.style.opacity = '1';
+      const dict = (typeof I18N !== 'undefined' && I18N[currentLang]) ? I18N[currentLang] : (typeof I18N !== 'undefined' ? I18N.fr : {});
+      if (btnText) btnText.innerText = dict.cart_confirm_cmd || 'Confirmer la commande';
+    }
+  }
+}
+
+function resetAndCloseCartModal() {
+  const successView = document.getElementById('cartSuccessView');
+  const activeContent = document.getElementById('cartActiveContent');
+  if (successView) successView.style.display = 'none';
+  if (activeContent) activeContent.style.display = 'block';
+  closeCartModal();
+}
+
+function sendWhatsAppReceipt() {
+  if (!lastConfirmedOrder) return;
+  const { orderId, table, name, items, total } = lastConfirmedOrder;
+  const isAr = currentLang === 'ar';
+  const isEn = currentLang === 'en';
 
   let greeting = isAr
-    ? `السلام عليكم *Maison Sola*، أود تأكيد الطلبية التالية :`
-    : (isEn ? `Hello *Maison Sola*, I would like to place this order:` : `Bonjour *Maison Sola*, je souhaite passer une commande :`);
+    ? `السلام عليكم *Maison Sola*، هذه نسخة من طلبيتي :`
+    : (isEn ? `Hello *Maison Sola*, receipt for my order:` : `Bonjour *Maison Sola*, voici une copie de ma commande :`);
 
   let msg = `${greeting}\n\n`;
-  msg += `📍 *${isAr ? 'رقم الطاولة' : (isEn ? 'Table Number' : 'Numéro de Table')}* : ${tableVal}\n`;
-  if (nameVal) {
-    msg += `👤 *${isAr ? 'الزبون' : (isEn ? 'Customer Name' : 'Client')}* : ${nameVal}\n`;
-  }
-  msg += `\n📋 *${isAr ? 'تفاصيل الطلبية' : (isEn ? 'Order Details' : 'Détails de la commande')}* :\n`;
+  msg += `🔖 *${isAr ? 'رقم الطلب' : 'Commande'}* : #${orderId}\n`;
+  msg += `📍 *${isAr ? 'رقم الطاولة' : 'Table'}* : ${table}\n`;
+  if (name) msg += `👤 *${isAr ? 'الزبون' : 'Client'}* : ${name}\n`;
+  msg += `\n📋 *${isAr ? 'الطلبات' : 'Détails'}* :\n`;
 
-  let total = 0;
   items.forEach(it => {
     const sub = it.price * it.qty;
-    total += sub;
     const displayName = (typeof getDishName === 'function') ? getDishName(it.id) : (it.name || '');
     const optStr = it.customSummary ? `\n   ↳ _${it.customSummary}_` : '';
     msg += `• *${it.qty}x* ${displayName} : *${sub.toLocaleString('fr-FR')} ${CURRENCY}*${optStr}\n`;
   });
 
-  msg += `\n💰 *${isAr ? 'المجموع الإجمالي' : (isEn ? 'Total Amount' : 'Total')} : ${total.toLocaleString('fr-FR')} ${CURRENCY}*`;
+  msg += `\n💰 *Total : ${total.toLocaleString('fr-FR')} ${CURRENCY}*`;
 
   const phone = '<?= preg_replace('/[^0-9]/', '', $rest['phone'] ?: '212600000000') ?>';
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');

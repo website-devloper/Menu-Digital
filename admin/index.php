@@ -13,13 +13,20 @@ $recent->execute([$rest['id']]);
 $recent = $recent->fetchAll();
 
 try {
-  $todayResv = db()->prepare("SELECT * FROM reservations WHERE restaurant_id = ? AND date = date('now') ORDER BY time");
-  $todayResv->execute([$rest['id']]);
+  $todayResv = db()->prepare("SELECT * FROM reservations WHERE restaurant_id = ? AND date = ? ORDER BY time");
+  $todayResv->execute([$rest['id'], date('Y-m-d')]);
   $todayResv = $todayResv->fetchAll();
   $pendingResv = (int)(db()->query("SELECT COUNT(*) FROM reservations WHERE restaurant_id = " . (int)$rest['id'] . " AND status = 'pending'")->fetchColumn());
   $activePromo = (int)(db()->query("SELECT COUNT(*) FROM promotions WHERE restaurant_id = " . (int)$rest['id'] . " AND active = 1")->fetchColumn());
+  
+  $recentOrders = db()->prepare("SELECT * FROM orders WHERE restaurant_id = ? ORDER BY id DESC LIMIT 5");
+  $recentOrders->execute([$rest['id']]);
+  $recentOrders = $recentOrders->fetchAll();
+  $pendingOrders = (int)(db()->query("SELECT COUNT(*) FROM orders WHERE restaurant_id = " . (int)$rest['id'] . " AND status = 'pending'")->fetchColumn());
+  $todayOrdersCount = (int)(db()->query("SELECT COUNT(*) FROM orders WHERE restaurant_id = " . (int)$rest['id'])->fetchColumn());
 } catch (Throwable $e) {
   $todayResv = []; $pendingResv = 0; $activePromo = 0;
+  $recentOrders = []; $pendingOrders = 0; $todayOrdersCount = 0;
 }
 
 $PAGE_TITLE = 'Tableau de bord';
@@ -36,11 +43,48 @@ require __DIR__ . '/../shared/layout.php';
 </div>
 
 <div class="stat-row">
+  <div class="stat">
+    <div class="lbl">Commandes en direct</div>
+    <div class="val" style="color:var(--accent);"><?= $todayOrdersCount ?></div>
+    <div class="delta badge <?= $pendingOrders > 0 ? 'badge-bad' : 'badge-ok' ?>"><?= $pendingOrders ?> en attente</div>
+  </div>
   <div class="stat"><div class="lbl">Plats au total</div><div class="val"><?= $dishCount ?></div><div class="delta badge badge-gold"><?= $catCount ?> catégories</div></div>
   <div class="stat"><div class="lbl">Disponibles</div><div class="val" style="color:var(--green-2);"><?= $availCount ?></div><div class="delta badge badge-ok">En ligne</div></div>
   <div class="stat"><div class="lbl">Réservations</div><div class="val" style="color:#8b5a00;"><?= count($todayResv) ?></div><div class="delta badge badge-gold"><?= $pendingResv ?> en attente</div></div>
-  <div class="stat"><div class="lbl">Promotions actives</div><div class="val" style="color:var(--accent);"><?= $activePromo ?></div><div class="delta badge badge-gold">Live</div></div>
 </div>
+
+<?php if (!empty($recentOrders)): ?>
+<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 2px 14px;">
+  <h2 style="font-size:18px;font-weight:800;margin:0;">Dernières commandes de table</h2>
+  <a href="/admin/orders.php" style="color:var(--accent);font-weight:700;font-size:13px;text-decoration:none;">Voir toutes les commandes (<?= $todayOrdersCount ?>) →</a>
+</div>
+<div class="table-wrap" style="margin-bottom:26px;">
+  <table>
+    <thead><tr><th>Heure</th><th>Table</th><th>Client</th><th>Plats</th><th>Total</th><th>Statut</th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($recentOrders as $ord):
+      $ordItems = json_decode($ord['items_json'] ?? '[]', true) ?: [];
+      $st = $ord['status'];
+      $badge = match ($st) { 'served' => 'badge-ok', 'cancelled' => 'badge-bad', 'preparing' => 'badge-gold', default => 'badge-gold' };
+      $stLabel = ['pending' => 'En attente', 'preparing' => 'En cuisine', 'served' => 'Servie', 'completed' => 'Terminée', 'cancelled' => 'Annulée'][$st] ?? $st;
+      $itemNames = array_map(fn($it) => ($it['qty'] ?? 1) . 'x ' . ($it['name'] ?? ''), $ordItems);
+      $itemsSummary = implode(', ', array_slice($itemNames, 0, 3));
+      if (count($itemNames) > 3) $itemsSummary .= '...';
+    ?>
+      <tr>
+        <td style="font-weight:700;color:var(--muted-ink);font-size:13px;"><?= date('H:i', strtotime($ord['created_at'])) ?></td>
+        <td style="font-weight:800;color:var(--text);"><?= e($ord['table_number']) ?></td>
+        <td><?= e($ord['customer_name'] ?: '—') ?></td>
+        <td style="max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;color:var(--text);"><?= e($itemsSummary) ?></td>
+        <td style="font-weight:800;color:var(--accent);"><?= number_format((float)$ord['total_amount'], 2, ',', ' ') ?> <?= e($rest['currency'] ?: 'DH') ?></td>
+        <td><span class="badge <?= e($badge) ?>"><?= e($stLabel) ?></span></td>
+        <td style="text-align:right;"><a class="icon-btn" href="/admin/orders.php" title="Gérer">→</a></td>
+      </tr>
+    <?php endforeach; ?>
+    </tbody>
+  </table>
+</div>
+<?php endif; ?>
 
 <?php if ($todayResv): ?>
 <h2 style="font-size:18px;font-weight:800;margin:10px 2px 14px;">Réservations aujourd'hui</h2>
