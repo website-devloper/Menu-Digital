@@ -10,19 +10,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if ($action === 'create') {
             $name = trim((string)($_POST['name'] ?? ''));
+            $name_en = trim((string)($_POST['name_en'] ?? ''));
+            $name_ar = trim((string)($_POST['name_ar'] ?? ''));
             if ($name === '') throw new RuntimeException('Nom requis');
             $pos = (int)(db()->query("SELECT COALESCE(MAX(position),-1)+1 FROM categories WHERE restaurant_id = $rid")->fetchColumn());
-            $st = db()->prepare('INSERT INTO categories (restaurant_id, name, position) VALUES (?,?,?)');
-            $st->execute([$rid, $name, $pos]);
+            $st = db()->prepare('INSERT INTO categories (restaurant_id, name, name_en, name_ar, position) VALUES (?,?,?,?,?)');
+            $st->execute([$rid, $name, $name_en, $name_ar, $pos]);
             header('Location: /admin/categories.php?ok=' . rawurlencode('Catégorie ajoutée.'));
             exit;
         }
         if ($action === 'rename') {
-            $id = (int)($_POST['id'] ?? 0); $name = trim((string)($_POST['name'] ?? ''));
+            $id = (int)($_POST['id'] ?? 0);
+            $name = trim((string)($_POST['name'] ?? ''));
+            $name_en = trim((string)($_POST['name_en'] ?? ''));
+            $name_ar = trim((string)($_POST['name_ar'] ?? ''));
             if ($id <= 0 || $name === '') throw new RuntimeException('Données invalides');
-            $st = db()->prepare('UPDATE categories SET name = ? WHERE id = ? AND restaurant_id = ?');
-            $st->execute([$name, $id, $rid]);
-            header('Location: /admin/categories.php?ok=' . rawurlencode('Catégorie renommée.'));
+            $st = db()->prepare('UPDATE categories SET name = ?, name_en = ?, name_ar = ? WHERE id = ? AND restaurant_id = ?');
+            $st->execute([$name, $name_en, $name_ar, $id, $rid]);
+            header('Location: /admin/categories.php?ok=' . rawurlencode('Catégorie mise à jour.'));
             exit;
         }
         if ($action === 'delete') {
@@ -77,34 +82,47 @@ require __DIR__ . '/../shared/layout.php';
   </div>
 </div>
 
-<div class="card" style="padding: 18px; margin-bottom: 20px;">
-  <form method="post" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+<div class="card" style="padding: 20px; margin-bottom: 20px;">
+  <form method="post">
     <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
     <input type="hidden" name="action" value="create">
-    <div style="flex:1;min-width:220px;">
-      <label class="label">Nouvelle catégorie</label>
-      <input class="input" name="name" required placeholder="Ex: Entrées, Pizzas, Desserts…">
+    <div style="font-size:14px; font-weight:800; margin-bottom:12px;">+ Ajouter une nouvelle catégorie</div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto; gap:12px; align-items:flex-end;">
+      <div>
+        <label class="label">🇫🇷 Nom (Français) *</label>
+        <input class="input" name="name" required placeholder="Ex: Burgers, Salades…">
+      </div>
+      <div>
+        <label class="label">🇬🇧 Name (English)</label>
+        <input class="input" name="name_en" placeholder="e.g. Burgers, Salads…">
+      </div>
+      <div dir="rtl">
+        <label class="label" style="text-align:right;">🇲🇦 الاسم (العربية)</label>
+        <input class="input" name="name_ar" placeholder="مثال: برغر، سلطات…" style="text-align:right; font-family:sans-serif;">
+      </div>
+      <button class="btn-primary" style="height:42px; padding:0 22px;">+ Ajouter</button>
     </div>
-    <button class="btn-primary">+ Ajouter</button>
   </form>
 </div>
 
 <div class="table-wrap">
   <table>
-    <thead><tr><th style="width:60px;">Ordre</th><th>Nom</th><th>Plats</th><th style="width:200px;text-align:right;">Actions</th></tr></thead>
+    <thead><tr><th style="width:50px;">Ordre</th><th>🇫🇷 Français</th><th>🇬🇧 English</th><th>🇲🇦 العربية</th><th style="width:90px;">Plats</th><th style="width:200px;text-align:right;">Actions</th></tr></thead>
     <tbody>
       <?php if (!$cats): ?>
-        <tr><td colspan="4" style="text-align:center;padding:40px 16px;color:var(--muted-ink);">Aucune catégorie.</td></tr>
+        <tr><td colspan="6" style="text-align:center;padding:40px 16px;color:var(--muted-ink);">Aucune catégorie.</td></tr>
       <?php else: foreach ($cats as $i => $c): ?>
         <tr>
           <td style="color:var(--muted-ink);font-weight:700;"><?= $i + 1 ?></td>
-          <td>
-            <form method="post" style="display:flex;gap:8px;align-items:center;">
+          <td colspan="3" style="padding:6px 12px;">
+            <form method="post" id="cat_form_<?= (int)$c['id'] ?>" style="display:grid; grid-template-columns: 1fr 1fr 1fr auto; gap:8px; align-items:center;">
               <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
               <input type="hidden" name="action" value="rename">
               <input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
-              <input class="input" name="name" value="<?= e($c['name']) ?>" style="max-width:280px;">
-              <button class="btn-ghost" style="padding:8px 14px;">Enregistrer</button>
+              <input class="input" name="name" value="<?= e($c['name']) ?>" title="Nom en français" placeholder="Nom FR" style="font-size:13px; padding:6px 10px;">
+              <input class="input" name="name_en" value="<?= e($c['name_en'] ?? '') ?>" title="Nom en anglais" placeholder="Name EN" style="font-size:13px; padding:6px 10px;">
+              <input class="input" name="name_ar" value="<?= e($c['name_ar'] ?? '') ?>" title="الاسم بالعربية" placeholder="الاسم بالعربية" dir="rtl" style="font-size:13px; padding:6px 10px; text-align:right;">
+              <button class="btn-ghost" style="padding:6px 12px; font-size:12.5px; white-space:nowrap;">Enregistrer</button>
             </form>
           </td>
           <td><span class="badge badge-gold"><?= (int)$c['dish_count'] ?> plats</span></td>

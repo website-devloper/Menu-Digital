@@ -9,23 +9,76 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 define('APP_ROOT',       dirname(__DIR__));
-define('DATA_DIR',       APP_ROOT . DIRECTORY_SEPARATOR . 'data');
-define('UPLOADS_DIR',    APP_ROOT . DIRECTORY_SEPARATOR . 'uploads');
+
+// Load .env if present
+if (file_exists(APP_ROOT . DIRECTORY_SEPARATOR . '.env')) {
+    $envLines = @file(APP_ROOT . DIRECTORY_SEPARATOR . '.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($envLines) {
+        foreach ($envLines as $line) {
+            $line = trim($line);
+            if ($line === '' || str_starts_with($line, '#')) continue;
+            if (strpos($line, '=') !== false) {
+                [$k, $v] = explode('=', $line, 2);
+                $k = trim($k);
+                $v = trim($v, " \t\n\r\0\x0B\"'");
+                if (!getenv($k)) {
+                    putenv("$k=$v");
+                    $_ENV[$k] = $v;
+                    $_SERVER[$k] = $v;
+                }
+            }
+        }
+    }
+}
+
+define('IS_VERCEL',      !empty(getenv('VERCEL')) || !empty($_ENV['VERCEL']));
+define('DATABASE_URL',   getenv('DATABASE_URL') ?: ($_ENV['DATABASE_URL'] ?? ''));
+define('DATA_DIR',       IS_VERCEL ? ('/tmp' . DIRECTORY_SEPARATOR . 'data') : (APP_ROOT . DIRECTORY_SEPARATOR . 'data'));
+define('UPLOADS_DIR',    IS_VERCEL ? ('/tmp' . DIRECTORY_SEPARATOR . 'uploads') : (APP_ROOT . DIRECTORY_SEPARATOR . 'uploads'));
 define('UPLOADS_URL',    '/uploads');
 define('DB_PATH',        DATA_DIR . DIRECTORY_SEPARATOR . 'menu.db');
 define('APP_NAME',       'Wevtex · Menu Digital');
 define('CURRENCY',       'DH');
 
-if (!is_dir(DATA_DIR))    { @mkdir(DATA_DIR, 0775, true); }
-if (!is_dir(UPLOADS_DIR)) { @mkdir(UPLOADS_DIR, 0775, true); }
+if (!is_dir(DATA_DIR))    { @mkdir(DATA_DIR, 0777, true); }
+if (!is_dir(UPLOADS_DIR)) { @mkdir(UPLOADS_DIR, 0777, true); }
+
+if (IS_VERCEL && !file_exists(DB_PATH) && empty(DATABASE_URL)) {
+    $seedDb = APP_ROOT . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'menu.db';
+    if (file_exists($seedDb)) {
+        @copy($seedDb, DB_PATH);
+    }
+}
 
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
-        $pdo = new PDO('sqlite:' . DB_PATH);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        $pdo->exec('PRAGMA foreign_keys = ON;');
+        $dbUrl = DATABASE_URL;
+        if (!empty($dbUrl)) {
+            $p = parse_url($dbUrl);
+            $host = $p['host'] ?? 'localhost';
+            $port = $p['port'] ?? 5432;
+            $user = $p['user'] ?? '';
+            $pass = isset($p['pass']) ? urldecode($p['pass']) : '';
+            $dbname = ltrim($p['path'] ?? '', '/');
+            $sslmode = 'require';
+            if (isset($p['query'])) {
+                parse_str($p['query'], $q);
+                if (!empty($q['sslmode'])) $sslmode = $q['sslmode'];
+            }
+            $endpoint = explode('.', $host)[0];
+            $endpoint = preg_replace('/-pooler$/', '', $endpoint);
+            $dsn = "pgsql:host={$host};port={$port};dbname={$dbname};sslmode={$sslmode};options='endpoint={$endpoint}'";
+            $pdo = new PDO($dsn, $user, $pass, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]);
+        } else {
+            $pdo = new PDO('sqlite:' . DB_PATH);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            $pdo->exec('PRAGMA foreign_keys = ON;');
+        }
     }
     return $pdo;
 }

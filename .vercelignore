@@ -1,0 +1,6 @@
+.git
+.vscode
+.idea
+*.log
+cookies.txt
+.env

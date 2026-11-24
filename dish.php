@@ -3,432 +3,1365 @@ require __DIR__ . '/shared/config.php';
 require __DIR__ . '/shared/lib.php';
 
 $id = (int)($_GET['id'] ?? 0);
-if ($id <= 0) { http_response_code(400); exit('Plat invalide.'); }
+if ($id <= 0) {
+    // If no ID provided, pick the first dish
+    $st = db()->query("SELECT id FROM dishes ORDER BY position, id LIMIT 1");
+    $id = $st ? (int)$st->fetchColumn() : 0;
+}
 
 $st = db()->prepare('
-    SELECT d.*, c.name AS cat_name, c.id AS cat_id, r.name AS rest_name, r.slug AS rest_slug, r.tagline, r.currency, r.phone AS rest_phone, r.hours AS rest_hours
+    SELECT d.*, c.name AS cat_name, c.id AS cat_id, r.name AS rest_name, r.slug AS rest_slug, r.currency, r.phone AS rest_phone
     FROM dishes d
     JOIN restaurants r ON r.id = d.restaurant_id
     LEFT JOIN categories c ON c.id = d.category_id
     WHERE d.id = ?');
 $st->execute([$id]);
 $d = $st->fetch();
-if (!$d) { http_response_code(404); exit('Plat introuvable.'); }
+
+if (!$d) {
+    http_response_code(404);
+    exit('Plat introuvable.');
+}
 
 $rid = (int)$d['restaurant_id'];
 $CURRENCY = $d['currency'] ?: 'DH';
 
-// Gallery photos (cover first; falls back to the dish photo column)
-$g = db()->prepare('SELECT photo FROM dish_photos WHERE dish_id = ? ORDER BY is_cover DESC, position, id');
+// Gallery photos of THIS SAME DISH
+$g = db()->prepare('SELECT photo FROM dish_photos WHERE dish_id = ? ORDER BY position, id');
 $g->execute([$id]);
-$gallery = array_map(fn($r) => $r['photo'], $g->fetchAll());
-if (!$gallery && !empty($d['photo'])) $gallery = [$d['photo']];
-$heroPhoto = $gallery[0] ?? null;
+$galleryRows = $g->fetchAll();
+$gallery = !empty($galleryRows) ? array_column($galleryRows, 'photo') : [];
+if (empty($gallery) && !empty($d['photo'])) {
+    $gallery = [$d['photo']];
+}
+// Ensure at least 3 photos for carousel peek effect
+if (count($gallery) === 1) {
+    $gallery = [$gallery[0], $gallery[0], $gallery[0]];
+} elseif (count($gallery) === 2) {
+    $gallery[] = $gallery[0];
+}
 
-// Promotion?
-$promos = promotions_active($rid);
-$pp = dish_promo_price($d, $promos);
+$heroPhoto = $gallery[0];
+$prevPhoto = $gallery[count($gallery) - 1];
+$nextPhoto = $gallery[1] ?? $gallery[0];
 
-// Flags + spice
-$flags = flags_to_list($d['flags']);
-$spice = (int)$d['spice'];
-
-// Related dishes
-$rel = db()->prepare('SELECT id, name, price, photo FROM dishes WHERE restaurant_id = ? AND category_id = ? AND id != ? AND available = 1 ORDER BY position LIMIT 3');
-$rel->execute([$rid, $d['cat_id'], $id]);
-$related = $rel->fetchAll();
-
-$backUrl = '/menu.php?r=' . rawurlencode($d['rest_slug']) . '#cat-' . (int)$d['cat_id'];
-[$hoursStatus, $hoursLabel] = hours_status(hours_decode($d['rest_hours']));
-
-$personalMessage = 'Bonjour, je souhaite commander : ' . $d['name'] . ' (' . number_format($pp['final'], 0, ',', ' ') . ' ' . $CURRENCY . ').';
-$waHref = wa_url(wa_number($d['rest_phone'] ?? ''), $personalMessage);
+$backUrl = '/menu.php?r=' . rawurlencode($d['rest_slug']);
 ?><!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
 <title><?= e($d['name']) ?> · <?= e($d['rest_name']) ?></title>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#2A1324">
-<meta name="description" content="<?= e(mb_substr($d['description'] ?? '', 0, 160)) ?>">
-<link rel="stylesheet" href="/shared/theme.css">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#FAF7F2">
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+
 <style>
-  body { background: var(--light); color: var(--dark); overflow-x: hidden; }
+:root {
+  --bg-canvas: #FAF7F2;
+  --bg-card: #FFFFFF;
+  --text-dark: #19201B;
+  --text-muted: #7E7C77;
+  --accent-terracotta: #B8532F;
+  --accent-terracotta-hover: #A24625;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --shadow-btn: 0 8px 24px rgba(184, 83, 47, 0.35);
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
 
-  .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 14px 22px; color: var(--text-onDark); background: transparent; transition: background .35s ease, backdrop-filter .35s ease, padding .35s ease, border-color .35s ease; border-bottom: 1px solid transparent;}
-  .site-header.scrolled { background: rgba(42,19,36,.96); backdrop-filter: saturate(140%) blur(14px); -webkit-backdrop-filter: saturate(140%) blur(14px); padding: 10px 22px; border-bottom-color: rgba(241,172,24,.14);}
-  .site-header .brand { display: flex; align-items: center; gap: 11px;}
-  .site-header .mark { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--gold), var(--amber)); display: grid; place-items: center; color: var(--dark); font-weight: 800; font-size: 16px; box-shadow: 0 10px 24px rgba(241,172,24,.35), inset 0 0 0 1px rgba(255,255,255,.4);}
-  .site-header .nm { font-weight: 800; font-size: 15px; letter-spacing: -.01em; line-height: 1.1; color: #fff;}
-  .site-header .lang { font-size: 10px; color: var(--gold); letter-spacing: .3em; text-transform: uppercase; font-weight: 800; margin-top: 2px;}
-  .back-chip { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(241,172,24,.28); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .04em; transition: var(--transition);}
-  .back-chip:hover { background: rgba(255,255,255,.14); border-color: var(--gold); }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-  /* ==== Hero gallery ==== */
-  .dish-hero { position: relative; min-height: 520px; padding: 110px 20px 70px; display: grid; place-items: end center; text-align: center; overflow: hidden; color: var(--text-onDark);}
-  .dish-hero .slides { position: absolute; inset: 0; z-index: 0;}
-  .dish-hero .slide {
-    position: absolute; inset: 0; background-size: cover; background-position: center;
-    opacity: 0; transition: opacity 1s ease, transform 8s ease;
-    transform: scale(1.05);
-  }
-  .dish-hero .slide.on { opacity: 1; transform: scale(1.12); }
-  .dish-hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(42,19,36,.55) 0%, rgba(42,19,36,.72) 50%, rgba(42,19,36,.95) 100%), radial-gradient(ellipse at top, rgba(241,172,24,.14), transparent 60%);}
-  .dish-hero.no-photo { background: linear-gradient(120deg, #2A1324 0%, #5A2340 55%, #883A61 100%); min-height: 380px;}
-  .dish-hero.no-photo::before { background: radial-gradient(ellipse at top, rgba(241,172,24,.14), transparent 65%);}
+html {
+  overflow-x: clip;
+}
 
-  .hero-inner { position: relative; z-index: 2; max-width: 820px; padding-bottom: 20px; }
-  .hero-eyebrow { display: inline-flex; align-items: center; gap: 12px; color: var(--gold); font-size: 11px; letter-spacing: .4em; text-transform: uppercase; font-weight: 800; margin-bottom: 20px;}
-  .hero-eyebrow::before, .hero-eyebrow::after { content: ""; width: 36px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold));}
-  .hero-eyebrow::after { background: linear-gradient(90deg, var(--gold), transparent); }
-  .dish-hero h1 { color: #fff; font-size: clamp(36px, 6vw, 60px); font-weight: 800; letter-spacing: -.02em; line-height: 1.05; margin-bottom: 14px; text-shadow: 0 6px 24px rgba(0,0,0,.4);}
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-canvas);
+  color: var(--text-dark);
+  line-height: 1.45;
+  overflow-x: clip;
+  padding-bottom: 120px;
+}
 
-  .price-row {
-    display: inline-flex; align-items: baseline; gap: 12px;
-    padding: 6px 20px;
-  }
-  .price-row .hero-price { font-weight: 800; font-size: 28px; letter-spacing: -.01em; color: var(--gold);}
-  .price-row .hero-price .cur { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .85; margin-left: 2px;}
-  .price-row .old-price { font-weight: 700; font-size: 16px; color: rgba(247,243,236,.55); text-decoration: line-through;}
-  .price-row .promo-tag {
-    padding: 4px 11px; border-radius: 999px;
-    background: linear-gradient(135deg, var(--red), #ff4d57);
-    color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
-    box-shadow: 0 6px 16px rgba(204,1,10,.35);
-  }
+.page-wrapper {
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUpSheet .38s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-  .hero-tags { display: flex; gap: 7px; justify-content: center; flex-wrap: wrap; margin-top: 18px;}
-  .hero-tags .tag { padding: 5px 13px; border-radius: 999px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22); color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; backdrop-filter: blur(6px);}
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); opacity: 0.5; }
+  to { transform: translateY(0); opacity: 1; }
+}
 
-  /* Thumbnail strip */
-  .thumbs { display: flex; gap: 10px; justify-content: center; margin-top: 22px; }
-  .thumbs button { width: 56px; height: 56px; border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,.35); background: transparent; cursor: pointer; padding: 0; transition: var(--transition);}
-  .thumbs button:hover { transform: scale(1.05); border-color: var(--gold); }
-  .thumbs button.active { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(241,172,24,.35);}
-  .thumbs img { width: 100%; height: 100%; object-fit: cover; }
+/* Top App Bar */
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 10px;
+  background: transparent;
+}
 
-  /* ==== Body ==== */
-  .dish-wrap { max-width: 900px; margin: -24px auto 0; padding: 0 20px 40px; position: relative; z-index: 3;}
-  .card-main { background: var(--surface); border-radius: 24px; padding: 32px 28px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(42,19,36,.04), 0 24px 60px rgba(42,19,36,.14); margin-bottom: 36px;}
-  @media (min-width: 720px) { .card-main { padding: 40px 48px;} }
+.nav-icon-btn {
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dark);
+  transition: transform .15s ease;
+  text-decoration: none;
+}
+.nav-icon-btn:active { transform: scale(0.9); }
+.nav-icon-btn svg { width: 24px; height: 24px; stroke-width: 2.2; }
 
-  .meta-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px dashed rgba(42,19,36,.1);}
-  .meta-row .left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;}
-  .cat-pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 999px; background: var(--surface-2); color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; border: 1px solid rgba(136,58,97,.18);}
-  .cat-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent);}
-  .status-pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 999px; background: var(--ok-bg); color: var(--ok-ink); font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase;}
-  .status-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green-2); box-shadow: 0 0 6px rgba(24,158,1,.5);}
-  .status-pill.bad { background: var(--bad-bg); color: var(--bad-ink);}
-  .status-pill.bad::before { background: var(--red); box-shadow: 0 0 6px rgba(204,1,10,.5);}
-  .share-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: transparent; border: 1px solid var(--border-strong); color: var(--dark); font-weight: 700; font-size: 12.5px; transition: var(--transition);}
-  .share-btn:hover { border-color: var(--accent); color: var(--accent);}
+/* Hero Carousel with Peek Previews */
+.hero-carousel-container {
+  position: relative;
+  width: 100%;
+  padding: 10px 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+  touch-action: pan-y;
+}
 
-  .lead { font-size: 17px; line-height: 1.7; color: var(--dark); font-weight: 500; margin-bottom: 20px;}
+/* Side Peek Images of the SAME dish */
+.side-peek {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 72px;
+  height: 210px;
+  border-radius: 20px;
+  overflow: hidden;
+  opacity: 0.55;
+  filter: blur(1.5px);
+  z-index: 1;
+  cursor: pointer;
+  transition: transform .25s ease, opacity .25s ease, filter .25s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+.side-peek.left {
+  left: -18px;
+}
+.side-peek.right {
+  right: -18px;
+}
+.side-peek img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 20px;
+  transition: opacity .25s ease;
+}
+.side-peek:hover {
+  opacity: 0.85;
+  filter: none;
+}
 
-  .block-title { font-size: 11px; letter-spacing: .24em; text-transform: uppercase; color: var(--accent); font-weight: 800; margin: 28px 0 14px; display: flex; align-items: center; gap: 10px;}
-  .block-title::after { content: ""; flex: 1; height: 1px; background: rgba(136,58,97,.18);}
+/* Arrow Nav Buttons (Stay on same dish, switch photo) */
+.peek-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0,0,0,0.06);
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  transition: transform .15s ease, background .15s ease;
+  outline: none;
+}
+.peek-nav-btn.left-btn { left: 16px; }
+.peek-nav-btn.right-btn { right: 16px; }
+.peek-nav-btn:active { transform: translateY(-50%) scale(0.9); background: #FFF; }
+.peek-nav-btn svg { width: 18px; height: 18px; stroke-width: 2.5; }
 
-  /* Dietary flag chips */
-  .flag-grid { display: flex; flex-wrap: wrap; gap: 8px;}
-  .flag-chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: 999px;
-    background: rgba(114,184,0,.1); color: #3f6b00;
-    border: 1px solid rgba(114,184,0,.26);
-    font-size: 12.5px; font-weight: 700;
-  }
-  .flag-chip.warn { background: rgba(241,172,24,.14); color: #8b5a00; border-color: rgba(241,172,24,.32);}
-  .flag-chip.nut  { background: rgba(242,91,10,.12);  color: #a23c05; border-color: rgba(242,91,10,.3);}
+/* Main Central Dish Photo (Square/Card with rounded corners so it looks appetizing) */
+.main-dish-visual {
+  width: 290px;
+  height: 250px;
+  max-width: calc(100vw - 110px);
+  border-radius: 26px;
+  overflow: hidden;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16), 0 6px 14px rgba(0, 0, 0, 0.08);
+  background: #FFF;
+}
+.main-dish-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 26px;
+  transition: opacity .22s ease, transform .22s ease;
+}
 
-  /* Spice meter */
-  .spice-meter { display: flex; align-items: center; gap: 10px;}
-  .spice-meter .dots { display: flex; gap: 6px;}
-  .spice-meter .dot { width: 18px; height: 18px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border-strong);}
-  .spice-meter .dot.on { background: linear-gradient(135deg, #ff6a00, var(--red)); border-color: transparent; box-shadow: 0 4px 12px rgba(242,91,10,.25);}
-  .spice-meter .lbl { font-size: 13px; font-weight: 700; color: var(--muted-ink);}
+/* Dots Indicator below image */
+.carousel-dots-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+  margin-bottom: 20px;
+}
+.carousel-dot {
+  cursor: pointer;
+  transition: all .25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.carousel-dot.active {
+  width: 24px;
+  height: 5px;
+  border-radius: 3px;
+  background: #C45A35;
+}
+.carousel-dot.inactive {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #D9D2C7;
+}
 
-  /* Promo banner inside the card */
-  .promo-banner {
-    display: flex; align-items: center; gap: 14px;
-    padding: 14px 18px;
-    background: linear-gradient(135deg, rgba(204,1,10,.08), rgba(242,91,10,.08));
-    border: 1px solid rgba(204,1,10,.18);
-    border-radius: 14px; margin-bottom: 20px;
-  }
-  .promo-banner .emoji { font-size: 24px;}
-  .promo-banner .info { flex: 1; }
-  .promo-banner .info strong { display: block; font-size: 15px; font-weight: 800; color: var(--bad-ink); margin-bottom: 2px;}
-  .promo-banner .info small { font-size: 12.5px; color: var(--muted-ink); font-weight: 500;}
+/* Dish Title & Price */
+.dish-header-center {
+  text-align: center;
+  padding: 0 24px;
+  margin-bottom: 24px;
+}
+.dish-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.dish-price {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--accent-terracotta);
+}
+.dish-desc-text {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  max-width: 380px;
+  margin: 8px auto 0;
+  line-height: 1.45;
+}
 
-  /* Facts */
-  .facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 10px;}
-  @media (min-width: 640px) { .facts { grid-template-columns: repeat(4, 1fr);} }
-  .fact { padding: 14px 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;}
-  .fact .lbl { font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted-ink); font-weight: 800;}
-  .fact .val { font-size: 15px; font-weight: 800; letter-spacing: -.01em; color: var(--dark); margin-top: 2px;}
+/* Customization Sections */
+.custom-section {
+  padding: 0 20px;
+  margin-bottom: 20px;
+}
+.section-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 10px;
+  display: block;
+}
 
-  /* CTAs */
-  .cta-row { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 28px; padding-top: 24px; border-top: 1px dashed rgba(42,19,36,.1);}
-  @media (min-width: 540px) { .cta-row { grid-template-columns: 1fr 1fr 1fr;} }
-  .cta-row .add-cart {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 14px 20px; border-radius: 999px;
-    background: var(--dark); color: var(--text-onDark);
-    font-weight: 800; letter-spacing: .02em; font-size: 14px;
-    transition: var(--transition); cursor: pointer; border: none;
-  }
-  .cta-row .add-cart:hover { background: linear-gradient(135deg, var(--gold), var(--amber)); color: var(--dark); transform: translateY(-1px);}
-  .cta-row .wa-cta {
-    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-    padding: 14px 20px; border-radius: 999px;
-    background: #25D366; color: #fff; font-weight: 800; letter-spacing: .02em; font-size: 14px;
-    transition: var(--transition);
-    box-shadow: 0 8px 20px rgba(37,211,102,.28);
-  }
-  .cta-row .wa-cta:hover { background: #1EBE5A; transform: translateY(-1px);}
-  .cta-row .btn-ghost { padding: 14px 24px; font-size: 13px; letter-spacing: .04em;}
+.options-pill-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 
-  /* Related */
-  .related { max-width: 900px; margin: 0 auto 60px; padding: 0 20px;}
-  .related h2 { text-align: center; font-weight: 800; letter-spacing: -.02em; font-size: clamp(22px, 3.6vw, 32px); margin-bottom: 28px;}
-  .related h2::after { content: ""; display: block; width: 44px; height: 3px; background: var(--accent); margin: 10px auto 0; border-radius: 2px;}
-  .related-grid { display: grid; grid-template-columns: 1fr; gap: 18px;}
-  @media (min-width: 640px) { .related-grid { grid-template-columns: repeat(3, 1fr);} }
-  .rel-card { background: var(--surface); border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(42,19,36,.04), 0 8px 24px rgba(42,19,36,.06); transition: transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s ease; display: block; color: inherit;}
-  .rel-card:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(42,19,36,.14);}
-  .rel-photo { aspect-ratio: 16 / 10; overflow: hidden; position: relative; background: linear-gradient(135deg, #3d1c34, var(--dark));}
-  .rel-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s ease;}
-  .rel-card:hover .rel-photo img { transform: scale(1.08);}
-  .rel-photo .fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--gold); font-weight: 800; font-size: 28px;}
-  .rel-body { padding: 14px 18px 18px; text-align: center;}
-  .rel-name { font-weight: 800; font-size: 15px; letter-spacing: -.01em; margin-bottom: 4px;}
-  .rel-price { color: var(--accent); font-weight: 800; font-size: 15px;}
+/* Active Cooking Pill (Moyenne) */
+.pill-active-choice {
+  background: var(--accent-terracotta);
+  color: #FFFFFF;
+  border: 1px solid var(--accent-terracotta);
+  border-radius: 24px;
+  padding: 9px 20px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(184,83,47,0.3);
+  transition: transform .15s ease;
+}
+.pill-active-choice:active { transform: scale(0.96); }
 
-  .menu-foot { background: var(--dark); color: var(--text-onDark); padding: 50px 24px 32px; text-align: center; position: relative;}
-  .menu-foot::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent);}
-  .menu-foot .brand-line { font-weight: 800; font-size: 20px; letter-spacing: -.01em; margin-bottom: 6px;}
-  .menu-foot .brand-line .gold { color: var(--gold);}
-  .menu-foot .sub-line { font-size: 10px; letter-spacing: .4em; text-transform: uppercase; color: rgba(247,243,236,.45); font-weight: 800;}
+/* Dropdown Choice Pills */
+.pill-dropdown-choice {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-dark);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  transition: all .15s ease;
+}
+.pill-dropdown-choice:hover {
+  border-color: #C45A35;
+}
+.pill-dropdown-choice:active {
+  transform: scale(0.96);
+}
+.pill-dropdown-choice .emoji-icon {
+  font-size: 16px;
+}
+.pill-dropdown-choice .chevron-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+}
 
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--dark); color: var(--text-onDark); padding: 10px 20px; border-radius: 999px; font-weight: 700; font-size: 13px; opacity: 0; transition: all .3s ease; pointer-events: none; z-index: 9999; box-shadow: 0 16px 36px rgba(42,19,36,.3);}
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0);}
+/* Quantity Control Box */
+.qty-selector-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 16px 0 24px;
+}
+.qty-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #FFF;
+  border: 1px solid var(--border-subtle);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent-terracotta);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.qty-btn:active { transform: scale(0.9); }
+.qty-number {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-dark);
+  min-width: 24px;
+  text-align: center;
+}
 
-  @media (prefers-reduced-motion: reduce) { .dish-hero .slide { animation: none !important; transition: opacity .3s ease !important; transform: none !important;} }
+/* Floating Bottom Button Bar */
+.bottom-action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(250, 247, 242, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 12px 20px;
+  padding-bottom: max(24px, calc(16px + env(safe-area-inset-bottom, 0px)));
+  z-index: 50;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.04);
+}
+.bottom-action-bar .bar-inner {
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.btn-add-cart-large {
+  width: 100%;
+  height: 54px;
+  min-height: 54px;
+  border-radius: 28px;
+  background: var(--accent-terracotta);
+  color: #FFFFFF;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-btn);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform .15s ease, background .15s ease;
+}
+.btn-add-cart-large:active {
+  transform: scale(0.98);
+  background: var(--accent-terracotta-hover);
+}
+
+/* Toast Notice */
+.toast-notice {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-60px);
+  background: rgba(24, 32, 27, 0.95);
+  color: #FFF;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 200;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  transition: transform .3s cubic-bezier(0.16, 1, 0.3, 1), opacity .3s ease;
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toast-notice.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+/* Customization Sheet Modal */
+.cust-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 250;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .28s ease;
+}
+.cust-modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.cust-sheet-panel {
+  background: var(--bg-canvas);
+  width: 100%;
+  max-width: 500px;
+  position: fixed;
+  top: 58px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  height: auto;
+  max-height: calc(100% - 58px);
+  border-radius: 28px 28px 0 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(105%);
+  transition: transform .32s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+.cust-modal-overlay.open .cust-sheet-panel {
+  transform: translateY(0);
+}
+.sheet-drag-handle-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 12px;
+  padding-bottom: 4px;
+  cursor: pointer;
+}
+.sheet-drag-bar {
+  width: 44px;
+  height: 5px;
+  border-radius: 3px;
+  background: #D9D2C7;
+}
+.cust-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #FFF;
+  flex-shrink: 0;
+}
+.cust-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.cust-header-info {
+  flex: 1;
+}
+.cust-dish-name {
+  font-family: var(--font-serif);
+  font-size: 16.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.2;
+}
+.cust-dish-baseprice {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent-terracotta);
+}
+.cust-close-btn {
+  background: #F4EFEB;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-dark);
+}
+.cust-close-btn svg { width: 18px; height: 18px; stroke-width: 2.2; }
+
+/* Multi-Dish Customization Tabs */
+.cust-item-tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #FFF;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  flex-shrink: 0;
+}
+.cust-item-tabs-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+.cust-tab-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .2s ease;
+  border: 1px solid #E2DACF;
+  background: var(--bg-canvas);
+  color: var(--text-dark);
+}
+.cust-tab-pill.active {
+  background: var(--accent-terracotta);
+  color: #FFF;
+  border-color: var(--accent-terracotta);
+  box-shadow: 0 2px 8px rgba(184,83,47,0.3);
+}
+.cust-tab-copy-btn {
+  background: #F4EFEB;
+  border: 1px solid #E2DACF;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #6C5543;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.cust-tab-copy-btn:active {
+  transform: scale(0.96);
+}
+.cust-current-dish-banner {
+  background: #FFF7F0;
+  border-left: 3px solid var(--accent-terracotta);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #8C401C;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cust-scroll-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 20px 24px;
+}
+.cust-group {
+  margin-bottom: 20px;
+}
+.cust-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.cust-group-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+.cust-badge-required {
+  background: rgba(184,83,47,0.12);
+  color: var(--accent-terracotta);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 12px;
+}
+.cust-badge-optional {
+  background: rgba(0,0,0,0.06);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 12px;
+}
+.cust-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cust-opt-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  background: #FFF;
+  border: 1.5px solid #EAE4DA;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all .18s ease;
+  user-select: none;
+}
+.cust-opt-card:active {
+  transform: scale(0.99);
+}
+.cust-opt-card.selected {
+  border-color: var(--accent-terracotta);
+  background: #FFF9F5;
+  box-shadow: 0 2px 10px rgba(184,83,47,0.1);
+}
+.cust-opt-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+.cust-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #D5CEBF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .18s ease;
+  flex-shrink: 0;
+}
+.cust-indicator.checkbox {
+  border-radius: 6px;
+}
+.cust-opt-card.selected .cust-indicator {
+  border-color: var(--accent-terracotta);
+  background: var(--accent-terracotta);
+}
+.cust-opt-card.selected .cust-indicator::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #FFF;
+  border-radius: 50%;
+}
+.cust-opt-card.selected .cust-indicator.checkbox::after {
+  content: '✓';
+  color: #FFF;
+  font-size: 12px;
+  font-weight: 800;
+  background: transparent;
+}
+.cust-opt-label {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+.cust-opt-price {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent-terracotta);
+  flex-shrink: 0;
+}
+.cust-opt-price.free {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.cust-bottom-bar {
+  flex-shrink: 0;
+  background: #FFF;
+  padding: 16px 24px;
+  padding-bottom: max(26px, calc(16px + env(safe-area-inset-bottom, 0px)));
+  border-top: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 -6px 20px rgba(0,0,0,0.05);
+}
+.cust-qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+}
+.cust-qty-row .qty-selector-wrap {
+  margin: 0;
+  gap: 12px;
+  background: var(--bg-canvas);
+  padding: 4px 6px;
+  border-radius: 9999px;
+  border: 1px solid #EAE4DA;
+}
+.cust-qty-row .qty-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 1px solid rgba(0,0,0,0.06);
+  font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+}
+.cust-qty-row .qty-number {
+  font-size: 16px;
+  min-width: 20px;
+}
 </style>
 </head>
 <body>
 
-<header class="site-header" id="siteHeader">
-  <div class="brand">
-    <div class="mark"><?= e(mb_substr($d['rest_name'], 0, 1)) ?></div>
-    <div><div class="nm"><?= e($d['rest_name']) ?></div><div class="lang">Menu Digital</div></div>
+<div class="page-wrapper">
+  <!-- Top Bar -->
+  <div class="top-nav">
+    <a href="<?= e($backUrl) ?>" class="nav-icon-btn" title="Retour au menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </a>
+
+    <button class="nav-icon-btn" onclick="shareDish()" title="Partager">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+        <polyline points="16 6 12 2 8 6"/>
+        <line x1="12" y1="2" x2="12" y2="15"/>
+      </svg>
+    </button>
   </div>
-  <a href="<?= e($backUrl) ?>" class="back-chip">← Menu</a>
-</header>
 
-<section class="dish-hero <?= $heroPhoto ? '' : 'no-photo' ?>" id="hero">
-  <?php if ($gallery): ?>
-    <div class="slides" aria-hidden="true">
-      <?php foreach ($gallery as $i => $g): ?>
-        <div class="slide <?= $i === 0 ? 'on' : '' ?>" style="background-image:url('<?= e(UPLOADS_URL . '/' . $g) ?>')"></div>
-      <?php endforeach; ?>
-    </div>
-  <?php endif; ?>
-
-  <div class="hero-inner">
-    <div class="hero-eyebrow"><?= e($d['cat_name'] ?? 'Notre carte') ?></div>
-    <h1><?= e($d['name']) ?></h1>
-    <div class="price-row">
-      <?php if ($pp['pct'] > 0): ?>
-        <span class="old-price"><?= number_format($pp['original'], 0, ',', ' ') ?> <?= e($CURRENCY) ?></span>
-        <span class="hero-price"><?= number_format($pp['final'], 0, ',', ' ') ?><span class="cur"><?= e($CURRENCY) ?></span></span>
-        <span class="promo-tag">−<?= (int)$pp['pct'] ?>%</span>
-      <?php else: ?>
-        <span class="hero-price"><?= number_format($pp['final'], 0, ',', ' ') ?><span class="cur"><?= e($CURRENCY) ?></span></span>
-      <?php endif; ?>
+  <!-- Hero Carousel Container (Photos of the SAME dish) -->
+  <div class="hero-carousel-container" id="carouselContainer">
+    <!-- Left Peek Image of same dish -->
+    <div class="side-peek left" onclick="changeDishImage('prev')" title="Photo précédente">
+      <img src="/uploads/<?= e($prevPhoto) ?>" alt="Vue précédente" id="leftPeekImg">
     </div>
 
-    <?php if ($flags || $spice > 0 || (int)$d['is_special'] === 1): ?>
-      <div class="hero-tags">
-        <?php if ((int)$d['is_special'] === 1): ?><span class="tag">★ Menu du jour</span><?php endif; ?>
-        <?php foreach ($flags as $f): [$lbl, $em] = flag_label($f); ?><span class="tag"><?= e(($em ? $em . ' ' : '') . $lbl) ?></span><?php endforeach; ?>
-        <?php if ($spice > 0): ?><span class="tag">🌶<?= str_repeat('·', max(0, $spice - 1)) ?> Épicé</span><?php endif; ?>
-      </div>
-    <?php endif; ?>
+    <!-- Left Button Arrow (Switches image of same dish) -->
+    <button class="peek-nav-btn left-btn" onclick="changeDishImage('prev')" title="Photo précédente">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
 
-    <?php if (count($gallery) > 1): ?>
-      <div class="thumbs">
-        <?php foreach ($gallery as $i => $g): ?>
-          <button type="button" class="<?= $i === 0 ? 'active' : '' ?>" data-slide="<?= $i ?>"><img src="<?= e(UPLOADS_URL . '/' . $g) ?>" alt=""></button>
-        <?php endforeach; ?>
-      </div>
-    <?php endif; ?>
+    <!-- Main Visual of the dish -->
+    <div class="main-dish-visual">
+      <img src="/uploads/<?= e($heroPhoto) ?>" alt="<?= e($d['name']) ?>" id="mainDishPhoto">
+    </div>
+
+    <!-- Right Button Arrow (Switches image of same dish) -->
+    <button class="peek-nav-btn right-btn" onclick="changeDishImage('next')" title="Photo suivante">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </button>
+
+    <!-- Right Peek Image of same dish -->
+    <div class="side-peek right" onclick="changeDishImage('next')" title="Photo suivante">
+      <img src="/uploads/<?= e($nextPhoto) ?>" alt="Vue suivante" id="rightPeekImg">
+    </div>
   </div>
-</section>
 
-<div class="dish-wrap">
-  <div class="card-main">
-    <div class="meta-row">
-      <div class="left">
-        <a class="cat-pill" href="<?= e('/menu.php?r=' . rawurlencode($d['rest_slug']) . '#cat-' . (int)$d['cat_id']) ?>"><?= e($d['cat_name'] ?? 'Sans catégorie') ?></a>
-        <?php if ((int)$d['available'] === 1): ?>
-          <span class="status-pill"><?= e($hoursLabel) ?></span>
-        <?php else: ?>
-          <span class="status-pill bad">Épuisé aujourd'hui</span>
-        <?php endif; ?>
+  <!-- Dots Indicator below image -->
+  <div class="carousel-dots-row" id="dotsContainer">
+    <?php foreach ($gallery as $idx => $photo): ?>
+      <span class="carousel-dot <?= $idx === 0 ? 'active' : 'inactive' ?>" onclick="changeDishImage(<?= $idx ?>)"></span>
+    <?php endforeach; ?>
+  </div>
+
+  <!-- Dish Title & Price -->
+  <div class="dish-header-center">
+    <h1 class="dish-title" id="displayDishTitle"><?= e($d['name']) ?></h1>
+    <div class="dish-price" id="displayDishPrice"><?= number_format((float)$d['price'], 0, ',', ' ') ?> <?= e($CURRENCY) ?></div>
+    <p class="dish-desc-text" id="displayDishDesc"><?= e($d['description'] ?? '') ?></p>
+  </div>
+
+  <!-- Quantity Selector -->
+  <div class="qty-selector-wrap">
+    <button class="qty-btn" onclick="adjustQty(-1)">-</button>
+    <span class="qty-number" id="qtyDisplay">1</span>
+    <button class="qty-btn" onclick="adjustQty(1)">+</button>
+  </div>
+</div>
+
+<!-- Floating Bottom Add to Cart Bar -->
+<div class="bottom-action-bar">
+  <div class="bar-inner">
+    <button class="btn-add-cart-large" onclick="handleAddToCart()">
+      <span>Ajouter au panier</span>
+      <span id="btnPriceTotal">• <?= number_format((float)$d['price'], 0, ',', ' ') ?> <?= e($CURRENCY) ?></span>
+    </button>
+  </div>
+</div>
+
+<!-- Dish Customization Bottom Sheet Modal -->
+<div class="cust-modal-overlay" id="customizationModalOverlay" onclick="closeCustomizationModal(event)">
+  <div class="cust-sheet-panel" onclick="event.stopPropagation()">
+    <div class="sheet-drag-handle-wrap" onclick="closeCustomizationModal()">
+      <div class="sheet-drag-bar"></div>
+    </div>
+    
+    <div class="cust-header">
+      <img src="/uploads/<?= e($heroPhoto) ?>" id="custDishThumb" class="cust-thumb" alt="">
+      <div class="cust-header-info">
+        <div class="cust-dish-name"><?= e($d['name']) ?></div>
+        <div class="cust-dish-baseprice"><?= number_format((float)$d['price'], 0, ',', ' ') ?> <?= e($CURRENCY) ?></div>
       </div>
-      <button class="share-btn" id="shareBtn" type="button">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        Partager
+      <button class="cust-close-btn" onclick="closeCustomizationModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
 
-    <?php if ($pp['promo']): ?>
-      <div class="promo-banner">
-        <div class="emoji">🎉</div>
-        <div class="info">
-          <strong><?= e($pp['promo']['name']) ?> — <?= (int)$pp['pct'] ?>% de réduction</strong>
-          <small>
-            <?php
-              $w = [];
-              if (!empty($pp['promo']['start_time']) || !empty($pp['promo']['end_time'])) {
-                $w[] = 'de ' . ($pp['promo']['start_time'] ?: '00:00') . ' à ' . ($pp['promo']['end_time'] ?: '00:00');
-              }
-              echo e('Prix réduit actif ' . ($w ? implode(' ', $w) : 'aujourd\'hui') . '.');
-            ?>
-          </small>
-        </div>
+    <!-- Multi-Item Tab Bar (Visible when qty > 1) -->
+    <div class="cust-item-tabs-bar" id="custItemTabsBar" style="display:none;">
+      <div class="cust-item-tabs-list" id="custTabsList">
+        <!-- Dynamically rendered tabs -->
       </div>
-    <?php endif; ?>
-
-    <?php if (!empty($d['description'])): ?><p class="lead"><?= e($d['description']) ?></p><?php endif; ?>
-
-    <?php if ($flags): ?>
-      <div class="block-title">Allergènes &amp; régimes</div>
-      <div class="flag-grid">
-        <?php foreach ($flags as $f): [$lbl, $em] = flag_label($f);
-          $cls = in_array($f, ['gluten','lactose']) ? 'warn' : ($f === 'nuts' ? 'nut' : '');
-        ?>
-          <span class="flag-chip <?= e($cls) ?>"><?= e($em) ?> <?= e($lbl) ?></span>
-        <?php endforeach; ?>
-      </div>
-    <?php endif; ?>
-
-    <?php if ($spice > 0): ?>
-      <div class="block-title">Niveau d'épice</div>
-      <div class="spice-meter">
-        <div class="dots">
-          <?php for ($i = 1; $i <= 3; $i++): ?>
-            <span class="dot <?= $i <= $spice ? 'on' : '' ?>"></span>
-          <?php endfor; ?>
-        </div>
-        <span class="lbl"><?= ['', 'Doux', 'Moyen', 'Fort'][$spice] ?? 'Moyen' ?></span>
-      </div>
-    <?php endif; ?>
-
-    <div class="block-title">Détails</div>
-    <div class="facts">
-      <div class="fact"><div class="lbl">Catégorie</div><div class="val"><?= e($d['cat_name'] ?? '—') ?></div></div>
-      <div class="fact"><div class="lbl">Prix</div><div class="val" style="color:var(--accent);"><?= number_format($pp['final'], 0, ',', ' ') ?> <?= e($CURRENCY) ?></div></div>
-      <div class="fact"><div class="lbl">État</div><div class="val" style="color:<?= $d['available'] ? 'var(--green-2)' : 'var(--bad-ink)' ?>;"><?= $d['available'] ? 'Disponible' : 'Épuisé' ?></div></div>
-      <div class="fact"><div class="lbl">Préparation</div><div class="val">À la commande</div></div>
+      <button type="button" class="cust-tab-copy-btn" onclick="applyCustToAll()" title="Copier les options du plat actuel sur tous les autres">
+        <span>📋 Idem pour tous</span>
+      </button>
     </div>
 
-    <div class="cta-row">
-      <?php if ((int)$d['available'] === 1): ?>
-        <button class="add-cart" type="button"
-                data-add
-                data-id="<?= (int)$d['id'] ?>"
-                data-name="<?= e($d['name']) ?>"
-                data-price="<?= e($pp['final']) ?>"
-                data-original="<?= e($pp['original']) ?>"
-                data-photo="<?= e($d['photo'] ?? '') ?>">+ Ajouter au panier</button>
-        <a class="wa-cta" href="<?= e($waHref) ?>" target="_blank">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3.5A11 11 0 0 0 3.6 17.4L2 22l4.7-1.5A11 11 0 1 0 20.5 3.5Zm-8.5 17a9 9 0 0 1-4.6-1.3l-.3-.2-2.8.9.9-2.7-.2-.3A9 9 0 1 1 12 20.5Z"/></svg>
-          Commander ce plat
-        </a>
-      <?php else: ?>
-        <button class="btn-ghost" style="opacity:.5;cursor:not-allowed;" disabled>Indisponible</button>
-      <?php endif; ?>
-      <a class="btn-ghost" href="<?= e($backUrl) ?>">← Retour au menu</a>
+    <div class="cust-scroll-body" id="custOptionsBody">
+      <!-- Dynamically generated groups & options -->
+    </div>
+
+    <div class="cust-bottom-bar">
+      <div class="cust-qty-row">
+        <span style="font-size:13.5px; font-weight:700; color:var(--text-dark);">Quantité</span>
+        <div class="qty-selector-wrap" style="margin:0;">
+          <button class="qty-btn" onclick="adjustCustQty(-1)">-</button>
+          <span class="qty-number" id="custQtyNumber">1</span>
+          <button class="qty-btn" onclick="adjustCustQty(1)">+</button>
+        </div>
+      </div>
+      <button class="btn-add-cart-large" onclick="confirmCustomizationAndAdd()">
+        <span id="custBtnText">Confirmer & Ajouter</span>
+        <span id="custBtnTotal">• <?= number_format((float)$d['price'], 0, ',', ' ') ?> <?= e($CURRENCY) ?></span>
+      </button>
     </div>
   </div>
-
-  <?php if ($related): ?>
-    <section class="related">
-      <h2>Vous aimerez aussi</h2>
-      <div class="related-grid">
-        <?php foreach ($related as $r): ?>
-          <a class="rel-card" href="/dish.php?id=<?= (int)$r['id'] ?>">
-            <div class="rel-photo">
-              <?php if ($r['photo']): ?><img src="<?= e(UPLOADS_URL . '/' . $r['photo']) ?>" alt="<?= e($r['name']) ?>" loading="lazy"><?php else: ?><div class="fallback"><?= e(mb_substr($d['rest_name'], 0, 1)) ?></div><?php endif; ?>
-            </div>
-            <div class="rel-body">
-              <div class="rel-name"><?= e($r['name']) ?></div>
-              <div class="rel-price"><?= number_format((float)$r['price'], 0, ',', ' ') ?> <?= e($CURRENCY) ?></div>
-            </div>
-          </a>
-        <?php endforeach; ?>
-      </div>
-    </section>
-  <?php endif; ?>
 </div>
 
-<footer class="menu-foot">
-  <div class="brand-line">Propulsé par <span class="gold">Wevtex</span> Menu Digital</div>
-  <div class="sub-line"><?= e($d['rest_name']) ?></div>
-</footer>
-
-<div class="toast" id="toast"></div>
+<!-- Toast Notice -->
+<div class="toast-notice" id="toastNotice">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastText">Ajouté au panier avec succès !</span>
+</div>
 
 <script>
-  const header = document.getElementById('siteHeader');
-  window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 40), { passive: true });
+const DISH_ID = <?= (int)$d['id'] ?>;
+const DISH_NAME = '<?= addslashes(e($d['name'])) ?>';
+const DISH_NAME_EN = '<?= addslashes(e($d['name_en'] ?? '')) ?>';
+const DISH_NAME_AR = '<?= addslashes(e($d['name_ar'] ?? '')) ?>';
+const DISH_DESC_EN = '<?= addslashes(e($d['description_en'] ?? '')) ?>';
+const DISH_DESC_AR = '<?= addslashes(e($d['description_ar'] ?? '')) ?>';
+const UNIT_PRICE = <?= (float)$d['price'] ?>;
+const CURRENCY = '<?= e($CURRENCY) ?>';
+const GALLERY = <?= json_encode($gallery) ?>;
+const DISH_OPTIONS = <?= json_encode(!empty($d['options']) ? json_decode($d['options'], true) : []) ?>;
 
-  const toast = (msg) => { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(window.__tt); window.__tt = setTimeout(() => t.classList.remove('show'), 2000); };
+let currentLang = localStorage.getItem('maison_sola_lang') || 'fr';
+if (currentLang === 'en') {
+  if (DISH_NAME_EN) {
+    const el = document.getElementById('displayDishTitle');
+    if (el) el.innerText = DISH_NAME_EN;
+  }
+  if (DISH_DESC_EN) {
+    const el = document.getElementById('displayDishDesc');
+    if (el) el.innerText = DISH_DESC_EN;
+  }
+} else if (currentLang === 'ar') {
+  document.documentElement.lang = 'ar';
+  document.documentElement.dir = 'rtl';
+  if (DISH_NAME_AR) {
+    const el = document.getElementById('displayDishTitle');
+    if (el) el.innerText = DISH_NAME_AR;
+  }
+  if (DISH_DESC_AR) {
+    const el = document.getElementById('displayDishDesc');
+    if (el) el.innerText = DISH_DESC_AR;
+  }
+}
 
-  document.getElementById('shareBtn').addEventListener('click', async () => {
-    const payload = { title: document.title, text: document.title, url: location.href };
-    if (navigator.share) { try { await navigator.share(payload); return; } catch {} }
-    try { await navigator.clipboard.writeText(location.href); toast('Lien copié dans le presse-papier'); } catch { toast('Impossible de partager'); }
-  });
+let currentSlideIdx = 0;
+let currentQty = 1;
 
-  // Gallery thumbnails
-  document.querySelectorAll('.thumbs button').forEach(b => {
-    b.addEventListener('click', () => {
-      document.querySelectorAll('.thumbs button').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      const idx = Number(b.dataset.slide);
-      document.querySelectorAll('.dish-hero .slide').forEach((s, i) => s.classList.toggle('on', i === idx));
+// Customization State with Multi-Dish support
+let custQty = 1;
+let currentCustItemIdx = 0;
+let custItems = [];
+
+function createDefaultItemOptions() {
+  const sel = {};
+  if (DISH_OPTIONS && DISH_OPTIONS.length > 0) {
+    DISH_OPTIONS.forEach((grp, gIdx) => {
+      if (grp.type === 'single') {
+        sel[gIdx] = [0];
+      } else {
+        sel[gIdx] = [];
+      }
     });
-  });
+  }
+  return sel;
+}
 
-  // Auto-rotate gallery every 5s
-  const slides = document.querySelectorAll('.dish-hero .slide');
-  const thumbs = document.querySelectorAll('.thumbs button');
-  if (slides.length > 1) {
-    let idx = 0;
-    setInterval(() => {
-      idx = (idx + 1) % slides.length;
-      slides.forEach((s, i) => s.classList.toggle('on', i === idx));
-      thumbs.forEach((t, i) => t.classList.toggle('active', i === idx));
-    }, 5000);
+function openCustomizationModal() {
+  custQty = Math.max(1, currentQty);
+  currentCustItemIdx = 0;
+  custItems = [];
+
+  for (let i = 0; i < custQty; i++) {
+    custItems.push(createDefaultItemOptions());
   }
 
-  // Add to cart (shared localStorage key with menu.php)
-  const RID = <?= $rid ?>;
-  const CART_KEY = 'cart_' + RID;
-  document.querySelectorAll('[data-add]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      let cart = {};
-      try { cart = JSON.parse(localStorage.getItem(CART_KEY)) || {}; } catch {}
-      const id = btn.dataset.id;
-      if (!cart[id]) cart[id] = { id, name: btn.dataset.name, price: Number(btn.dataset.price), original: Number(btn.dataset.original || btn.dataset.price), photo: btn.dataset.photo, qty: 0 };
-      cart[id].qty++;
-      try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch {}
-      toast('Ajouté au panier');
+  document.getElementById('custQtyNumber').innerText = custQty;
+  updateTabsUI();
+  renderCustomizationOptions();
+  updateCustPrice();
+
+  document.getElementById('customizationModalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCustomizationModal(e) {
+  document.getElementById('customizationModalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function updateTabsUI() {
+  const bar = document.getElementById('custItemTabsBar');
+  const tabsList = document.getElementById('custTabsList');
+
+  if (custQty > 1) {
+    bar.style.display = 'flex';
+    let tabsHtml = '';
+    for (let i = 0; i < custQty; i++) {
+      const isActive = (i === currentCustItemIdx);
+      tabsHtml += `
+        <button type="button" class="cust-tab-pill ${isActive ? 'active' : ''}" onclick="switchCustItem(${i})">
+          Plat #${i + 1}
+        </button>
+      `;
+    }
+    tabsList.innerHTML = tabsHtml;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function switchCustItem(idx) {
+  currentCustItemIdx = idx;
+  updateTabsUI();
+  renderCustomizationOptions();
+  updateCustPrice();
+}
+
+function applyCustToAll() {
+  if (custQty <= 1) return;
+  const currentSel = JSON.parse(JSON.stringify(custItems[currentCustItemIdx]));
+  for (let i = 0; i < custQty; i++) {
+    custItems[i] = JSON.parse(JSON.stringify(currentSel));
+  }
+  const toast = document.getElementById('toastNotice');
+  toast.innerText = 'Options copiées sur tous les plats !';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1600);
+  updateCustPrice();
+}
+
+function adjustCustQty(delta) {
+  const newQty = Math.max(1, custQty + delta);
+  if (newQty === custQty) return;
+
+  if (newQty > custQty) {
+    const prevItem = custItems[custItems.length - 1];
+    custItems.push(prevItem ? JSON.parse(JSON.stringify(prevItem)) : createDefaultItemOptions());
+    currentCustItemIdx = newQty - 1;
+  } else {
+    custItems.pop();
+    if (currentCustItemIdx >= newQty) {
+      currentCustItemIdx = newQty - 1;
+    }
+  }
+
+  custQty = newQty;
+  currentQty = newQty;
+  document.getElementById('qtyDisplay').innerText = currentQty;
+  document.getElementById('custQtyNumber').innerText = custQty;
+
+  updateTabsUI();
+  renderCustomizationOptions();
+  updateCustPrice();
+}
+
+function toggleCustOption(gIdx, iIdx) {
+  const grp = DISH_OPTIONS[gIdx];
+  if (!grp) return;
+
+  const currentSel = custItems[currentCustItemIdx];
+  if (!currentSel) return;
+
+  if (grp.type === 'single') {
+    currentSel[gIdx] = [iIdx];
+  } else {
+    if (!currentSel[gIdx]) currentSel[gIdx] = [];
+    const pos = currentSel[gIdx].indexOf(iIdx);
+    if (pos >= 0) {
+      currentSel[gIdx].splice(pos, 1);
+    } else {
+      currentSel[gIdx].push(iIdx);
+    }
+  }
+
+  renderCustomizationOptions();
+  updateCustPrice();
+}
+
+function renderCustomizationOptions() {
+  if (!DISH_OPTIONS) return;
+  const container = document.getElementById('custOptionsBody');
+
+  const bannerHtml = (custQty > 1) 
+    ? `<div class="cust-current-dish-banner">
+         <span>⚙️ Options pour : <b>Plat #${currentCustItemIdx + 1}</b> sur ${custQty}</span>
+         <span style="font-size:11px; opacity:0.85;">Sélectionnez ci-dessous</span>
+       </div>`
+    : '';
+
+  const currentSel = custItems[currentCustItemIdx] || {};
+  let html = bannerHtml;
+
+  DISH_OPTIONS.forEach((grp, gIdx) => {
+    const isSingle = grp.type === 'single';
+    const isRequired = grp.required;
+    const grpTitle = (currentLang === 'en' && grp.name_en) ? grp.name_en : ((currentLang === 'ar' && grp.name_ar) ? grp.name_ar : grp.name);
+
+    html += `
+      <div class="cust-group" id="custGroup_${gIdx}">
+        <div class="cust-group-head">
+          <span class="cust-group-title">${grpTitle}</span>
+          <span class="${isRequired ? 'cust-badge-required' : 'cust-badge-optional'}">
+            ${badgeText}
+          </span>
+        </div>
+        <div class="cust-options-list">
+    `;
+
+    grp.items.forEach((item, iIdx) => {
+      const isSel = currentSel[gIdx] && currentSel[gIdx].includes(iIdx);
+      const itemTitle = (currentLang === 'en' && item.name_en) ? item.name_en : ((currentLang === 'ar' && item.name_ar) ? item.name_ar : item.name);
+      const priceText = item.price > 0 ? `+${item.price} ${CURRENCY}` : 'Inclus';
+      const isFree = item.price === 0;
+
+      html += `
+        <div class="cust-opt-card ${isSel ? 'selected' : ''}" onclick="toggleCustOption(${gIdx}, ${iIdx})">
+          <div class="cust-opt-left">
+            <span class="cust-indicator ${isSingle ? 'radio' : 'checkbox'}"></span>
+            <span class="cust-opt-label">${itemTitle}</span>
+          </div>
+          <span class="cust-opt-price ${isFree ? 'free' : ''}">${priceText}</span>
+        </div>
+      `;
     });
+
+    html += `
+        </div>
+      </div>
+    `;
   });
+
+  container.innerHTML = html;
+}
+
+function calculateCustTotalPrice() {
+  let total = 0;
+  for (let k = 0; k < custQty; k++) {
+    let itemPrice = UNIT_PRICE;
+    const itemSel = custItems[k] || {};
+    if (DISH_OPTIONS && DISH_OPTIONS.length > 0) {
+      DISH_OPTIONS.forEach((grp, gIdx) => {
+        const selIndices = itemSel[gIdx] || [];
+        selIndices.forEach(idx => {
+          const item = grp.items[idx];
+          if (item && item.price) {
+            itemPrice += Number(item.price);
+          }
+        });
+      });
+    }
+    total += itemPrice;
+  }
+  return total;
+}
+
+function updateCustPrice() {
+  const total = calculateCustTotalPrice();
+  const label = custQty > 1 ? `Confirmer les ${custQty} plats` : 'Confirmer & Ajouter';
+  document.getElementById('custBtnText').innerText = label;
+  document.getElementById('custBtnTotal').innerText = `• ${total.toLocaleString('fr-FR')} ${CURRENCY}`;
+}
+
+function confirmCustomizationAndAdd() {
+  if (DISH_OPTIONS && DISH_OPTIONS.length > 0) {
+    for (let k = 0; k < custQty; k++) {
+      const itemSel = custItems[k] || {};
+      for (let gIdx = 0; gIdx < DISH_OPTIONS.length; gIdx++) {
+        const grp = DISH_OPTIONS[gIdx];
+        if (grp.required) {
+          const sel = itemSel[gIdx] || [];
+          if (sel.length === 0) {
+            switchCustItem(k);
+            const grpEl = document.getElementById(`custGroup_${gIdx}`);
+            if (grpEl) grpEl.scrollIntoView({ behavior: 'smooth' });
+            const toast = document.getElementById('toastNotice');
+            toast.innerText = `Plat #${k + 1} : Veuillez choisir ${grp.name}`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  let cart = JSON.parse(localStorage.getItem('maison_sola_cart') || '{}');
+
+  for (let k = 0; k < custQty; k++) {
+    const itemSel = custItems[k] || {};
+    let itemUnitPrice = UNIT_PRICE;
+    const choiceNames = [];
+    const keyParts = [DISH_ID];
+
+    if (DISH_OPTIONS && DISH_OPTIONS.length > 0) {
+      DISH_OPTIONS.forEach((grp, gIdx) => {
+        const sel = itemSel[gIdx] || [];
+        sel.forEach(idx => {
+          const it = grp.items[idx];
+          if (it) {
+            choiceNames.push(it.name + (it.price > 0 ? ` (+${it.price} ${CURRENCY})` : ''));
+            keyParts.push(`${gIdx}:${idx}`);
+            if (it.price) itemUnitPrice += Number(it.price);
+          }
+        });
+      });
+    }
+
+    const cartKey = keyParts.join('_');
+    const customSummary = choiceNames.join(', ');
+
+    if (!cart[cartKey]) {
+      cart[cartKey] = {
+        cartKey: cartKey,
+        id: DISH_ID,
+        name: DISH_NAME,
+        price: itemUnitPrice,
+        photo: GALLERY[0],
+        qty: 1,
+        customSummary: customSummary
+      };
+    } else {
+      cart[cartKey].qty += 1;
+    }
+  }
+
+  localStorage.setItem('maison_sola_cart', JSON.stringify(cart));
+  closeCustomizationModal();
+
+  const toast = document.getElementById('toastNotice');
+  toast.innerText = `${custQty}x ${DISH_NAME} personnalisé${custQty > 1 ? 's' : ''} ajouté${custQty > 1 ? 's' : ''} !`;
+  toast.classList.add('show');
+  
+  if (navigator.vibrate) navigator.vibrate(50);
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    window.location.href = '<?= e($backUrl) ?>';
+  }, 900);
+}
+
+function handleAddToCart() {
+  if (DISH_OPTIONS && DISH_OPTIONS.length > 0) {
+    openCustomizationModal();
+    return;
+  }
+
+  const cartKey = String(DISH_ID);
+  let cart = JSON.parse(localStorage.getItem('maison_sola_cart') || '{}');
+  if (!cart[cartKey]) {
+    cart[cartKey] = {
+      cartKey: cartKey,
+      id: DISH_ID,
+      name: DISH_NAME,
+      price: UNIT_PRICE,
+      photo: GALLERY[0],
+      qty: currentQty,
+      customSummary: ''
+    };
+  } else {
+    cart[cartKey].qty += currentQty;
+  }
+  localStorage.setItem('maison_sola_cart', JSON.stringify(cart));
+
+  const toast = document.getElementById('toastNotice');
+  toast.innerText = `${currentQty}x ${DISH_NAME} ajouté au panier !`;
+  toast.classList.add('show');
+  
+  if (navigator.vibrate) navigator.vibrate(50);
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    window.location.href = '<?= e($backUrl) ?>';
+  }, 900);
+}
+
+// Switch photos of THIS SAME DISH in place
+function changeDishImage(dir) {
+  if (GALLERY.length <= 1) return;
+
+  if (dir === 'next') {
+    currentSlideIdx = (currentSlideIdx + 1) % GALLERY.length;
+  } else if (dir === 'prev') {
+    currentSlideIdx = (currentSlideIdx - 1 + GALLERY.length) % GALLERY.length;
+  } else if (typeof dir === 'number') {
+    currentSlideIdx = dir;
+  }
+
+  const prevIdx = (currentSlideIdx - 1 + GALLERY.length) % GALLERY.length;
+  const nextIdx = (currentSlideIdx + 1) % GALLERY.length;
+
+  const mainImg = document.getElementById('mainDishPhoto');
+  mainImg.style.opacity = '0';
+  mainImg.style.transform = 'scale(0.92)';
+
+  setTimeout(() => {
+    mainImg.src = '/uploads/' + GALLERY[currentSlideIdx];
+    mainImg.style.opacity = '1';
+    mainImg.style.transform = 'scale(1)';
+  }, 120);
+
+  const leftPeek = document.getElementById('leftPeekImg');
+  const rightPeek = document.getElementById('rightPeekImg');
+  if (leftPeek) leftPeek.src = '/uploads/' + GALLERY[prevIdx];
+  if (rightPeek) rightPeek.src = '/uploads/' + GALLERY[nextIdx];
+
+  // Update dots
+  const dots = document.querySelectorAll('.carousel-dot');
+  dots.forEach((dot, idx) => {
+    if (idx === currentSlideIdx) {
+      dot.className = 'carousel-dot active';
+    } else {
+      dot.className = 'carousel-dot inactive';
+    }
+  });
+
+  if (navigator.vibrate) navigator.vibrate(25);
+}
+
+// Touch swipe support on image
+let touchStartX = 0;
+let touchEndX = 0;
+const carouselEl = document.getElementById('carouselContainer');
+carouselEl.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+carouselEl.addEventListener('touchend', e => {
+  touchEndX = e.changedTouches[0].screenX;
+  if (touchStartX - touchEndX > 45) {
+    changeDishImage('next');
+  } else if (touchEndX - touchStartX > 45) {
+    changeDishImage('prev');
+  }
+}, { passive: true });
+
+function adjustQty(delta) {
+  currentQty = Math.max(1, currentQty + delta);
+  document.getElementById('qtyDisplay').innerText = currentQty;
+  const total = (currentQty * UNIT_PRICE).toLocaleString('fr-FR');
+  document.getElementById('btnPriceTotal').innerText = `• ${total} ${CURRENCY}`;
+}
+
+
+
+
+
+function shareDish() {
+  if (navigator.share) {
+    navigator.share({
+      title: `${DISH_NAME} · Maison Sola`,
+      url: window.location.href
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(window.location.href);
+    const toast = document.getElementById('toastNotice');
+    toast.innerText = 'Lien copié dans le presse-papier !';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+}
 </script>
-</body></html>
+
+</body>
+</html>

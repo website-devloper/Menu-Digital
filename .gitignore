@@ -6,3 +6,5 @@ uploads/*
 .idea/
 *.log
 cookies.txt
+.vercel
+.env
