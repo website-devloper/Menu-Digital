@@ -36,7 +36,7 @@ require __DIR__ . '/../shared/layout.php';
 
 <div class="page-head">
   <div>
-    <h1>Bonjour <?= e(explode(' ', $user['display_name'] ?: 'Admin')[0]) ?> <i class="fa-solid fa-star" style="color:var(--gold);font-size:.75em;vertical-align:baseline;"></i></h1>
+    <h1>Bonjour <?= e(explode(' ', $user['display_name'] ?: 'Admin')[0]) ?></h1>
     <div class="sub">Voici l'état de votre menu digital.</div>
   </div>
   <a class="btn-primary" href="/admin/dishes.php?new=1">+ Ajouter un plat</a>
