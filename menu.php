@@ -37,6 +37,10 @@ $CURRENCY = $rest['currency'] ?: 'DH';
 // Map photos for category circles
 $catPhotos = [];
 foreach ($categories as $cat) {
+    if (!empty($cat['image'])) {
+        $catPhotos[$cat['id']] = $cat['image'];
+        continue;
+    }
     foreach ($dishes as $d) {
         if ((int)$d['category_id'] === (int)$cat['id'] && !empty($d['photo'])) {
             $catPhotos[$cat['id']] = $d['photo'];

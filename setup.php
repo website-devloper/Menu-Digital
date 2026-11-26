@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS categories (
   name          TEXT    NOT NULL,
   name_en       TEXT    DEFAULT '',
   name_ar       TEXT    DEFAULT '',
+  image         TEXT    DEFAULT '',
   position      INTEGER NOT NULL DEFAULT 0,
   created_at    $ts
 );
