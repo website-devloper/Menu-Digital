@@ -1736,10 +1736,13 @@ html[dir="rtl"] .cust-current-dish-banner {
   margin-bottom: 4px;
 }
 .footer-wevtex-logo {
-  height: 32px;
+  height: 44px;
+  max-height: 44px;
+  max-width: 180px;
   width: auto;
   display: block;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.4));
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.45));
 }
 .footer-brand-title {
   font-family: var(--font-sans);
@@ -2105,7 +2108,8 @@ html[dir="rtl"] .cust-current-dish-banner {
   <div class="footer-container">
     <div class="footer-brand-section">
       <div class="footer-emblem-wrap">
-        <img src="/assets/wevtex-mark-light.png" alt="Wevtex" class="footer-wevtex-logo">
+        <?php $brandLogo = !empty($rest['logo']) ? '/uploads/' . $rest['logo'] : '/assets/wevtex-mark-light.png'; ?>
+        <img src="<?= e($brandLogo) ?>" alt="<?= e($rest['name'] ?: 'Wevtex') ?>" class="footer-wevtex-logo">
       </div>
       <h3 class="footer-brand-title"><?= e($rest['name'] ?: 'Maison Sola') ?></h3>
       <p class="footer-tagline" id="footerTagline">Haute Gastronomie & Saveurs Authentiques</p>
