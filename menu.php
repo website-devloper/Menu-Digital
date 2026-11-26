@@ -2029,11 +2029,14 @@ html[dir="rtl"] .cust-current-dish-banner {
       </div>
 
       <?php foreach ($categories as $c): ?>
-        <?php $cPhoto = $catPhotos[$c['id']] ?? 'dish_12_v1.jpg'; ?>
+        <?php
+          $cPhoto = $catPhotos[$c['id']] ?? 'dish_12_v1.jpg';
+          $cPhotoSrc = str_starts_with($cPhoto, 'data:') ? $cPhoto : '/uploads/' . $cPhoto;
+        ?>
         <div class="spec-item" onclick="filterCategory('<?= (int)$c['id'] ?>', this)">
           <div class="spec-ring">
             <div class="spec-inner">
-              <img src="/uploads/<?= e($cPhoto) ?>" alt="<?= e($c['name']) ?>">
+              <img src="<?= e($cPhotoSrc) ?>" alt="<?= e($c['name']) ?>">
             </div>
           </div>
           <span class="spec-label" data-cat-id="<?= (int)$c['id'] ?>" data-cat-name="<?= e($c['name']) ?>"><?= e($c['name']) ?></span>

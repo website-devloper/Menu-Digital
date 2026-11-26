@@ -11,14 +11,12 @@ function save_cat_image(array $file): ?string {
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) return null;
     $info = getimagesize($file['tmp_name']);
     if (!$info) throw new RuntimeException('Fichier image invalide.');
-    $extMap = [IMAGETYPE_JPEG => '.jpg', IMAGETYPE_PNG => '.png', IMAGETYPE_WEBP => '.webp', IMAGETYPE_GIF => '.gif'];
-    if (!isset($extMap[$info[2]])) throw new RuntimeException('Format non supporté (jpg/png/webp/gif).');
-    if ($file['size'] > 6 * 1024 * 1024) throw new RuntimeException('Image trop lourde (max 6 Mo).');
-    $name = 'cat_' . bin2hex(random_bytes(8)) . $extMap[$info[2]];
-    if (!move_uploaded_file($file['tmp_name'], UPLOADS_DIR . DIRECTORY_SEPARATOR . $name)) {
-        throw new RuntimeException('Échec de téléchargement.');
-    }
-    return $name;
+    $mimeMap = [IMAGETYPE_JPEG => 'image/jpeg', IMAGETYPE_PNG => 'image/png', IMAGETYPE_WEBP => 'image/webp', IMAGETYPE_GIF => 'image/gif'];
+    if (!isset($mimeMap[$info[2]])) throw new RuntimeException('Format non supporté (jpg/png/webp/gif).');
+    if ($file['size'] > 2 * 1024 * 1024) throw new RuntimeException('Image trop lourde (max 2 Mo).');
+    $bytes = file_get_contents($file['tmp_name']);
+    if ($bytes === false) throw new RuntimeException('Lecture du fichier échouée.');
+    return 'data:' . $mimeMap[$info[2]] . ';base64,' . base64_encode($bytes);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -158,7 +156,7 @@ require __DIR__ . '/../shared/layout.php';
             <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
               <div style="width:64px;height:64px;border-radius:12px;overflow:hidden;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;">
                 <?php if ($img): ?>
-                  <img src="<?= e(UPLOADS_URL . '/' . $img) ?>" alt="" style="width:100%;height:100%;object-fit:cover;">
+                  <img src="<?= e(str_starts_with($img, 'data:') ? $img : UPLOADS_URL . '/' . $img) ?>" alt="" style="width:100%;height:100%;object-fit:cover;">
                 <?php else: ?>
                   <i class="fa-solid fa-image" style="color:var(--muted-ink);font-size:20px;"></i>
                 <?php endif; ?>
