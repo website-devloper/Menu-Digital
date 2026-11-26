@@ -15,20 +15,22 @@ $NAV = [
 ];
 
 function nav_icon(string $k): string {
-  $s = 'width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
-  return match($k) {
-    'grid'         => "<svg $s><rect x='3' y='3' width='7' height='7' rx='1'/><rect x='14' y='3' width='7' height='7' rx='1'/><rect x='3' y='14' width='7' height='7' rx='1'/><rect x='14' y='14' width='7' height='7' rx='1'/></svg>",
-    'shopping-bag' => "<svg $s><path d='M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z'/><path d='M3 6h18'/><path d='M16 10a4 4 0 0 1-8 0'/></svg>",
-    'layers'       => "<svg $s><path d='m12 2 10 5-10 5-10-5z'/><path d='m2 12 10 5 10-5'/><path d='m2 17 10 5 10-5'/></svg>",
-    'utensils' => "<svg $s><path d='M3 2v7a3 3 0 0 0 6 0V2'/><path d='M6 11v11'/><path d='M17 2v20'/><path d='M14 2h6a0 0 0 0 1 0 0v6a3 3 0 0 1-3 3h-3V2z'/></svg>",
-    'qr'       => "<svg $s><rect x='3' y='3' width='7' height='7' rx='1'/><rect x='14' y='3' width='7' height='7' rx='1'/><rect x='3' y='14' width='7' height='7' rx='1'/><path d='M14 14h3v3h-3zM18 18h3v3h-3zM14 18h3v3h-3z'/></svg>",
-    'camera'   => "<svg $s><path d='M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z'/><circle cx='12' cy='13' r='4'/></svg>",
-    'calendar' => "<svg $s><rect x='3' y='4' width='18' height='18' rx='2' ry='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>",
-    'tag'      => "<svg $s><path d='M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z'/><line x1='7' y1='7' x2='7.01' y2='7'/></svg>",
-    'cog'      => "<svg $s><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/></svg>",
-    'logout'   => "<svg $s><path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/><polyline points='16 17 21 12 16 7'/><line x1='21' y1='12' x2='9' y2='12'/></svg>",
-    default    => ''
-  };
+  // Material Symbols Rounded (Google Fonts). Loaded via @import in /shared/theme.css.
+  $map = [
+    'grid'         => 'space_dashboard',
+    'shopping-bag' => 'shopping_bag',
+    'layers'       => 'category',
+    'utensils'     => 'restaurant_menu',
+    'qr'           => 'qr_code_2',
+    'camera'       => 'photo_camera',
+    'calendar'     => 'event',
+    'tag'          => 'sell',
+    'cog'          => 'settings',
+    'logout'       => 'logout',
+  ];
+  $name = $map[$k] ?? '';
+  if ($name === '') return '';
+  return "<span class=\"msi sm\" aria-hidden=\"true\">{$name}</span>";
 }
 ?><!doctype html>
 <html lang="fr">
@@ -39,7 +41,8 @@ function nav_icon(string $k): string {
 <link rel="stylesheet" href="/shared/theme.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0&display=swap" rel="stylesheet">
 <style>
   .app { display:grid; grid-template-columns: 240px 1fr; min-height:100vh; }
   @media (max-width: 860px) { .app { grid-template-columns: 1fr; } }
@@ -67,16 +70,18 @@ function nav_icon(string $k): string {
   .nav-section-title { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: rgba(247,243,236,.42); padding: 10px 10px 6px; }
   .nav-list { list-style:none; display: flex; flex-direction: column; gap: 2px; }
   .nav-link {
-    display:flex; align-items:center; gap: 10px; padding: 10px 12px; border-radius: 12px;
-    color: rgba(247,243,236,.82); font-weight: 600; transition: var(--transition);
-    white-space: nowrap;
+    display:flex; align-items:center; gap: 12px; padding: 11px 14px; border-radius: 12px;
+    color: rgba(247,243,236,.85); font-weight: 700; font-size: 14px; letter-spacing: -.005em;
+    transition: var(--transition); white-space: nowrap;
   }
-  .nav-link:hover { background: rgba(255,255,255,.06); color:#fff; }
+  .nav-link .msi { font-size: 20px; opacity: .9; }
+  .nav-link:hover { background: rgba(255,255,255,.08); color:#fff; }
   .nav-link.active {
     background: linear-gradient(135deg, var(--gold), var(--amber));
-    color:#241017;
-    box-shadow: 0 8px 20px rgba(241,172,24,.32);
+    color:#241017; font-weight: 900;
+    box-shadow: 0 10px 24px rgba(241,172,24,.38);
   }
+  .nav-link.active .msi { opacity: 1; font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 24; }
   .side-foot { margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(247,243,236,.1); display:grid; gap: 8px; }
   .side-user {
     display:flex; align-items:center; gap:10px; padding: 10px 12px;
@@ -96,25 +101,35 @@ function nav_icon(string $k): string {
   @media (max-width: 640px) { main.main { padding: 18px 16px 50px; } }
 
   .page-head { display:flex; align-items:center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
-  .page-head h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
-  .page-head .sub { color: var(--muted-ink); font-size: 14px; margin-top: 3px; }
+  .page-head h1 { font-size: 30px; font-weight: 900; letter-spacing: -.025em; }
+  .page-head .sub { color: var(--muted-ink); font-size: 14px; font-weight: 600; margin-top: 4px; }
 
-  .stat-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 26px; }
+  .stat-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 28px; }
   .stat {
-    padding: 18px; background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
+    padding: 22px; background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card), var(--shadow-inner);
+    transition: var(--transition-smooth); position: relative; overflow: hidden;
   }
-  .stat .lbl { font-size: 12px; color: var(--muted-ink); letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
-  .stat .val { font-family: var(--font-heading); font-size: 30px; font-weight: 800; margin-top: 4px; color: var(--dark);}
-  .stat .delta { font-size: 12px; margin-top: 4px; }
+  .stat::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--amber));
+    opacity: 0; transition: opacity .3s;
+  }
+  .stat:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover), var(--shadow-inner); }
+  .stat:hover::before { opacity: 1; }
+  .stat .lbl { font-size: 11px; color: var(--muted-ink); letter-spacing: .1em; text-transform: uppercase; font-weight: 800; }
+  .stat .val { font-family: var(--font-heading); font-size: 34px; font-weight: 900; margin-top: 6px; color: var(--dark); letter-spacing: -.025em;}
+  .stat .delta { font-size: 12px; font-weight: 700; margin-top: 4px; }
 
   .table-wrap {
     background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg);
-    overflow:hidden; box-shadow: var(--shadow-card);
+    overflow:hidden; box-shadow: var(--shadow-card), var(--shadow-inner);
   }
   table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 12px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border); vertical-align: middle;}
-  th { font-size: 12px; color: var(--muted-ink); letter-spacing: .08em; text-transform: uppercase; font-weight: 700; background: var(--surface-2); }
+  th, td { padding: 14px 18px; text-align: left; font-size: 14px; font-weight: 600; border-bottom: 1px solid var(--border); vertical-align: middle;}
+  th { font-size: 11px; color: var(--muted-ink); letter-spacing: .1em; text-transform: uppercase; font-weight: 800; background: var(--surface-2); }
+  tbody tr { transition: background .15s; }
+  tbody tr:hover { background: var(--surface-2); }
   tr:last-child td { border-bottom: none; }
 
   .thumb { width: 44px; height: 44px; border-radius: 8px; overflow: hidden; background: var(--track); display:grid; place-items:center; color: var(--muted-ink); flex-shrink:0;}

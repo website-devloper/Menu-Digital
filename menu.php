@@ -104,9 +104,35 @@ $firstPhoto = !empty($dishes[0]['photo']) ? $dishes[0]['photo'] : 'dish_12_v1.jp
 <!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0&display=swap" rel="stylesheet">
 
 <style>
+/* Material Symbols Rounded — Google Font icon system */
+.msi, .material-symbols-rounded {
+  font-family: 'Material Symbols Rounded' !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+.msi.filled { font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24; }
+.msi.bold   { font-variation-settings: 'FILL' 0, 'wght' 700, 'GRAD' 0, 'opsz' 24; }
+.msi.sm     { font-size: 18px; }
+.msi.lg     { font-size: 28px; }
+.msi.xl     { font-size: 36px; }
+
 :root {
   --bg-canvas: #FAF7F2;
   --bg-card: #FFFFFF;
@@ -352,10 +378,10 @@ html[dir="rtl"] .cust-current-dish-banner {
 }
 .section-title {
   font-family: var(--font-serif);
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 900;
   color: var(--text-dark);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
 }
 
 .pill-popular {
@@ -494,16 +520,24 @@ html[dir="rtl"] .cust-current-dish-banner {
 
 .dish-card {
   background: var(--bg-card);
-  border-radius: var(--radius-card);
+  border-radius: 22px;
   overflow: hidden;
-  box-shadow: var(--shadow-card);
+  border: 1px solid rgba(42,19,36,.06);
+  box-shadow: 0 1px 2px rgba(42,19,36,.04), 0 10px 28px rgba(42,19,36,.08);
   display: flex;
   flex-direction: column;
   position: relative;
-  transition: transform .2s ease, box-shadow .2s ease;
+  transition: transform .35s cubic-bezier(.4,0,.2,1), box-shadow .35s cubic-bezier(.4,0,.2,1), border-color .35s ease;
   cursor: pointer;
 }
-.dish-card:active { transform: scale(0.98); }
+.dish-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 4px 14px rgba(42,19,36,.08), 0 24px 48px rgba(42,19,36,.16);
+  border-color: rgba(42,19,36,.14);
+}
+.dish-card:active { transform: translateY(-2px) scale(0.99); }
+.dish-card .dish-card-img-wrap img { transition: transform .55s cubic-bezier(.4,0,.2,1); }
+.dish-card:hover .dish-card-img-wrap img { transform: scale(1.06); }
 
 /* Image Container */
 .dish-card-img-wrap {
@@ -526,10 +560,12 @@ html[dir="rtl"] .cust-current-dish-banner {
   top: 10px;
   left: 10px;
   z-index: 2;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 12px;
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.14);
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -583,21 +619,23 @@ html[dir="rtl"] .cust-current-dish-banner {
   justify-content: space-between;
 }
 .dish-name {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 900;
   color: var(--text-dark);
-  margin-bottom: 2px;
-  line-height: 1.25;
+  margin-bottom: 3px;
+  line-height: 1.22;
+  letter-spacing: -.02em;
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .dish-short-desc {
-  font-size: 11.5px;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text-muted);
-  line-height: 1.35;
-  margin-bottom: 8px;
+  line-height: 1.4;
+  margin-bottom: 10px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -612,13 +650,14 @@ html[dir="rtl"] .cust-current-dish-banner {
   margin-top: auto;
 }
 .dish-price {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 17px;
+  font-weight: 900;
   color: var(--accent-terracotta);
+  letter-spacing: -.01em;
 }
 .btn-add-plus {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--accent-terracotta);
   color: #FFF;
@@ -628,13 +667,18 @@ html[dir="rtl"] .cust-current-dish-banner {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(184,83,47,0.3);
-  transition: transform .15s ease, background .15s ease;
+  box-shadow: 0 6px 14px rgba(184,83,47,0.36), inset 0 1px 0 rgba(255,255,255,.2);
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+.btn-add-plus:hover {
+  transform: scale(1.08) rotate(90deg);
+  box-shadow: 0 8px 20px rgba(184,83,47,0.48), inset 0 1px 0 rgba(255,255,255,.3);
 }
 .btn-add-plus:active {
-  transform: scale(0.9);
+  transform: scale(0.92);
   background: var(--accent-terracotta-hover);
 }
+.btn-add-plus .msi { font-size: 20px; font-variation-settings: 'FILL' 0, 'wght' 700, 'GRAD' 0, 'opsz' 24; }
 .btn-add-plus svg { width: 18px; height: 18px; stroke-width: 2.5; }
 
 /* Floating Bottom Bar */
@@ -1681,50 +1725,65 @@ html[dir="rtl"] .cust-current-dish-banner {
   gap: 8px;
 }
 .footer-emblem-wrap {
-  width: 50px;
-  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 2px;
+  padding: 10px 18px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08);
+  margin-bottom: 4px;
 }
-.footer-emblem-svg {
-  width: 44px;
-  height: 44px;
+.footer-wevtex-logo {
+  height: 32px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.4));
 }
 .footer-brand-title {
-  font-family: var(--font-serif);
-  font-size: 23px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: none;
   color: #FAF7F2;
   margin: 0;
 }
 .footer-tagline {
-  font-size: 13px;
-  color: rgba(237, 232, 222, 0.72);
-  letter-spacing: 0.04em;
+  font-size: 13.5px;
+  color: rgba(237, 232, 222, 0.7);
+  letter-spacing: 0.02em;
   margin: 0;
-  font-style: italic;
+  font-weight: 500;
 }
 .footer-ornament {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   color: #D4AF37;
   font-size: 11px;
-  letter-spacing: 6px;
-  margin-top: 4px;
-  opacity: 0.85;
+  margin-top: 6px;
+  opacity: 0.9;
+}
+.footer-ornament::before,
+.footer-ornament::after {
+  content: "";
+  width: 36px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,.6), transparent);
 }
 .footer-info-grid {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
-  max-width: 440px;
-  background: rgba(255, 255, 255, 0.035);
-  padding: 16px 18px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  max-width: 460px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255,255,255,0.015));
+  padding: 20px 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 40px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.06);
 }
 .footer-info-item {
   display: flex;
@@ -1736,20 +1795,21 @@ html[dir="rtl"] .cust-current-dish-banner {
   text-align: right;
 }
 .footer-info-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(184, 83, 47, 0.16);
-  color: var(--accent-terracotta);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(241,172,24,.18), rgba(184, 83, 47, 0.18));
+  color: #F1AC18;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border: 1px solid rgba(184, 83, 47, 0.25);
+  border: 1px solid rgba(241,172,24,0.3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
 }
-.footer-info-icon svg {
-  width: 18px;
-  height: 18px;
+.footer-info-icon .msi {
+  font-size: 20px;
+  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
 }
 .footer-info-text {
   display: flex;
@@ -1757,16 +1817,17 @@ html[dir="rtl"] .cust-current-dish-banner {
   gap: 2px;
 }
 .footer-info-label {
-  font-size: 11px;
+  font-size: 10.5px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(237, 232, 222, 0.5);
-  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgba(241, 172, 24, 0.75);
+  font-weight: 800;
 }
 .footer-info-val {
-  font-size: 13.5px;
+  font-size: 14px;
   color: #FAF7F2;
-  font-weight: 500;
+  font-weight: 700;
+  letter-spacing: -.005em;
   text-decoration: none;
 }
 .footer-phone-link {
@@ -1800,31 +1861,50 @@ html[dir="rtl"] .cust-current-dish-banner {
 .footer-social-btn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 15px;
+  gap: 8px;
+  padding: 9px 16px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.055);
   color: #FAF7F2;
   text-decoration: none;
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -.005em;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  transition: all .2s ease;
+  transition: all .25s cubic-bezier(.4,0,.2,1);
 }
-.footer-social-btn svg {
-  width: 15px;
-  height: 15px;
+.footer-social-btn .brand-ico {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: transform .25s ease;
 }
-.footer-social-btn:hover {
-  background: var(--accent-terracotta);
-  border-color: var(--accent-terracotta);
-  color: #FFF;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(184,83,47,0.35);
+.footer-social-btn:hover { transform: translateY(-2px); color: #FFF; }
+.footer-social-btn:hover .brand-ico { transform: scale(1.15); }
+.footer-social-btn.ig-btn:hover {
+  background: linear-gradient(45deg, #F58529, #DD2A7B, #8134AF);
+  border-color: transparent;
+  box-shadow: 0 6px 18px rgba(221,42,123,0.42);
 }
 .footer-social-btn.whatsapp-btn:hover {
   background: #25D366;
   border-color: #25D366;
+  box-shadow: 0 6px 18px rgba(37,211,102,0.42);
+}
+.footer-social-btn.tt-btn:hover {
+  background: #000;
+  border-color: #000;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+}
+.footer-social-btn.fb-btn:hover {
+  background: #1877F2;
+  border-color: #1877F2;
+  box-shadow: 0 6px 18px rgba(24,119,242,0.42);
+}
+.footer-social-btn.maps-btn:hover {
+  background: #4285F4;
+  border-color: #4285F4;
+  box-shadow: 0 6px 18px rgba(66,133,244,0.42);
 }
 .footer-badges-row {
   display: flex;
@@ -1877,13 +1957,9 @@ html[dir="rtl"] .cust-current-dish-banner {
     <!-- Language Toggle with Dropdown -->
     <div class="lang-wrapper" id="langWrapper">
       <div class="lang-selector" onclick="toggleLangMenu(event)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="2" y1="12" x2="22" y2="12"/>
-          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-        </svg>
+        <span class="msi sm" aria-hidden="true">language</span>
         <span id="currentLangLabel">FR</span>
-        <span class="chevron">▼</span>
+        <span class="msi sm chevron" aria-hidden="true">expand_more</span>
       </div>
 
       <div class="lang-dropdown-menu" id="langDropdownMenu">
@@ -1914,17 +1990,10 @@ html[dir="rtl"] .cust-current-dish-banner {
     <!-- Right Actions -->
     <div class="top-actions">
       <button class="icon-btn" onclick="toggleSearch()" title="Rechercher">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
+        <span class="msi" aria-hidden="true">search</span>
       </button>
       <button class="icon-btn" onclick="openCartModal()" title="Panier">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <path d="M16 10a4 4 0 0 1-8 0"/>
-        </svg>
+        <span class="msi" aria-hidden="true">shopping_bag</span>
         <span class="badge-count" id="headerCartCount" style="display:none;">0</span>
       </button>
     </div>
@@ -1966,10 +2035,7 @@ html[dir="rtl"] .cust-current-dish-banner {
 
   <!-- Search Input -->
   <div class="search-box-wrap" id="searchBoxWrap" style="display:none;">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-      <circle cx="11" cy="11" r="8"/>
-      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-    </svg>
+    <span class="msi" aria-hidden="true">search</span>
     <input type="text" class="search-input" id="dishSearchInput" placeholder="Rechercher un plat..." oninput="filterDishesBySearch(this.value)">
   </div>
 
@@ -2025,10 +2091,7 @@ html[dir="rtl"] .cust-current-dish-banner {
           <div class="dish-card-footer">
             <span class="dish-price"><?= number_format((float)$d['price'], 0, ',', ' ') ?> <?= e($CURRENCY) ?></span>
             <button class="btn-add-plus" onclick="event.stopPropagation(); quickAddToCart(<?= (int)$d['id'] ?>)" title="Ajouter">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
+              <span class="msi" aria-hidden="true">add</span>
             </button>
           </div>
         </div>
@@ -2042,20 +2105,17 @@ html[dir="rtl"] .cust-current-dish-banner {
   <div class="footer-container">
     <div class="footer-brand-section">
       <div class="footer-emblem-wrap">
-        <svg class="footer-emblem-svg" viewBox="0 0 48 48" fill="none">
-          <circle cx="24" cy="24" r="22" stroke="rgba(212,175,55,0.45)" stroke-width="1.2"/>
-          <path d="M24 7L27 18L38 19L29 26L32 37L24 30L16 37L19 26L10 19L21 18Z" fill="#B8532F" stroke="#D4AF37" stroke-width="1"/>
-        </svg>
+        <img src="/assets/wevtex-mark-light.png" alt="Wevtex" class="footer-wevtex-logo">
       </div>
-      <h3 class="footer-brand-title"><?= e($rest['name'] ?: 'MAISON SOLA') ?></h3>
+      <h3 class="footer-brand-title"><?= e($rest['name'] ?: 'Maison Sola') ?></h3>
       <p class="footer-tagline" id="footerTagline">Haute Gastronomie & Saveurs Authentiques</p>
-      <div class="footer-ornament">✦ ✦ ✦</div>
+      <div class="footer-ornament"><span>✦</span></div>
     </div>
 
     <div class="footer-info-grid">
       <div class="footer-info-item">
         <div class="footer-info-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span class="msi" aria-hidden="true">location_on</span>
         </div>
         <div class="footer-info-text">
           <span class="footer-info-label" id="footerLabelAddress">Adresse</span>
@@ -2065,7 +2125,7 @@ html[dir="rtl"] .cust-current-dish-banner {
 
       <div class="footer-info-item">
         <div class="footer-info-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="msi" aria-hidden="true">schedule</span>
         </div>
         <div class="footer-info-text">
           <span class="footer-info-label" id="footerLabelHours">Horaires de service</span>
@@ -2075,7 +2135,7 @@ html[dir="rtl"] .cust-current-dish-banner {
 
       <div class="footer-info-item">
         <div class="footer-info-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span class="msi" aria-hidden="true">call</span>
         </div>
         <div class="footer-info-text">
           <span class="footer-info-label" id="footerLabelContact">Réservations & Contact</span>
@@ -2088,42 +2148,28 @@ html[dir="rtl"] .cust-current-dish-banner {
     <div class="footer-social-section">
       <span class="footer-social-title" id="footerLabelFollow">Suivez notre univers</span>
       <div class="footer-social-pills">
-        <a href="https://instagram.com" target="_blank" rel="noopener" class="footer-social-btn" title="Instagram">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-          </svg>
+        <a href="https://instagram.com" target="_blank" rel="noopener" class="footer-social-btn ig-btn" title="Instagram">
+          <svg class="brand-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.23.42.56.22.96.48 1.38.9.42.42.68.82.9 1.38.17.42.37 1.05.42 2.23.06 1.26.07 1.65.07 4.85s0 3.6-.07 4.85c-.05 1.18-.25 1.8-.42 2.23-.22.56-.48.96-.9 1.38a3.7 3.7 0 0 1-1.38.9c-.42.17-1.05.37-2.23.42-1.26.06-1.65.07-4.85.07s-3.6 0-4.85-.07c-1.18-.05-1.8-.25-2.23-.42a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.17-.42-.37-1.05-.42-2.23C2.2 15.6 2.2 15.2 2.2 12s0-3.6.07-4.85c.05-1.17.25-1.8.42-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.17 1.05-.37 2.23-.42C8.4 2.2 8.8 2.2 12 2.2M12 0C8.74 0 8.33 0 7.05.07 5.78.13 4.9.33 4.14.63a5.9 5.9 0 0 0-2.13 1.38A5.9 5.9 0 0 0 .63 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s0 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.31.78.72 1.45 1.38 2.11a5.9 5.9 0 0 0 2.13 1.38c.76.3 1.64.5 2.91.56C8.33 24 8.74 24 12 24s3.67 0 4.95-.07c1.27-.06 2.15-.26 2.91-.56a5.9 5.9 0 0 0 2.13-1.38 5.9 5.9 0 0 0 1.38-2.11c.3-.76.5-1.64.56-2.91.07-1.28.07-1.69.07-4.95s0-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.9 5.9 0 0 0-1.38-2.13A5.9 5.9 0 0 0 19.86.63C19.1.33 18.22.13 16.95.07 15.67 0 15.26 0 12 0zm0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4zm6.4-11.84a1.44 1.44 0 1 0 1.44 1.44 1.44 1.44 0 0 0-1.44-1.44z"/></svg>
           <span>Instagram</span>
         </a>
 
         <a href="https://wa.me/<?= preg_replace('/[^0-9]/', '', $rest['phone'] ?: '212600000000') ?>" target="_blank" rel="noopener" class="footer-social-btn whatsapp-btn" title="WhatsApp">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-          </svg>
+          <svg class="brand-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1s-.5-.1-.7.1-.8 1-1 1.2-.4.2-.7.1a8.1 8.1 0 0 1-2.4-1.5 9 9 0 0 1-1.6-2c-.2-.3 0-.5.1-.6s.3-.3.4-.5.2-.3.3-.5.1-.4 0-.5l-1-2.3c-.2-.6-.5-.5-.7-.5h-.6a1.1 1.1 0 0 0-.8.4 3.3 3.3 0 0 0-1 2.5 5.8 5.8 0 0 0 1.2 3.1c.2.2 2.1 3.2 5 4.5a16.8 16.8 0 0 0 1.7.6 4 4 0 0 0 1.8.1c.6-.1 1.8-.7 2-1.4a2.5 2.5 0 0 0 .2-1.4c-.1-.1-.3-.2-.6-.3zm-5.5 7.5h0a10 10 0 0 1-5-1.4l-.4-.2-3.7 1 1-3.6-.3-.4a9.9 9.9 0 1 1 8.4 4.6zM20.5 3.5A11.8 11.8 0 0 0 2 17.9L.3 24l6.2-1.6a11.8 11.8 0 0 0 5.6 1.4h0a11.8 11.8 0 0 0 11.9-11.8 11.7 11.7 0 0 0-3.5-8.5z"/></svg>
           <span>WhatsApp</span>
         </a>
 
-        <a href="https://tiktok.com" target="_blank" rel="noopener" class="footer-social-btn" title="TikTok">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.49 6.3 6.3 0 0 0 1.86-4.49V8.58a8.28 8.28 0 0 0 4.84 1.56V6.69h-.93z"/>
-          </svg>
+        <a href="https://tiktok.com" target="_blank" rel="noopener" class="footer-social-btn tt-btn" title="TikTok">
+          <svg class="brand-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.49 6.3 6.3 0 0 0 1.86-4.49V8.58a8.28 8.28 0 0 0 4.84 1.56V6.69z"/></svg>
           <span>TikTok</span>
         </a>
 
-        <a href="https://facebook.com" target="_blank" rel="noopener" class="footer-social-btn" title="Facebook">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-          </svg>
+        <a href="https://facebook.com" target="_blank" rel="noopener" class="footer-social-btn fb-btn" title="Facebook">
+          <svg class="brand-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07z"/></svg>
           <span>Facebook</span>
         </a>
 
-        <a href="https://maps.google.com" target="_blank" rel="noopener" class="footer-social-btn" title="Google Maps">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
-            <line x1="8" y1="2" x2="8" y2="18"/>
-            <line x1="16" y1="6" x2="16" y2="22"/>
-          </svg>
+        <a href="https://maps.google.com" target="_blank" rel="noopener" class="footer-social-btn maps-btn" title="Google Maps">
+          <svg class="brand-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7.46 7.46 0 0 0-7.46 7.46c0 6.52 6.78 11.9 7.07 12.13a.65.65 0 0 0 .78 0c.29-.23 7.07-5.61 7.07-12.13A7.46 7.46 0 0 0 12 2zm0 10.76a3.3 3.3 0 1 1 3.3-3.3 3.3 3.3 0 0 1-3.3 3.3z"/></svg>
           <span>Maps</span>
         </a>
       </div>
@@ -2159,11 +2205,7 @@ html[dir="rtl"] .cust-current-dish-banner {
     <span class="sub-total" id="floatingOrderTotal">0 <?= e($CURRENCY) ?></span>
   </div>
   <button class="btn-view-cart" onclick="openCartModal()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-      <line x1="3" y1="6" x2="21" y2="6"/>
-      <path d="M16 10a4 4 0 0 1-8 0"/>
-    </svg>
+    <span class="msi sm" aria-hidden="true">shopping_bag</span>
     <span id="floatingViewCartBtn">Voir le panier</span>
   </button>
 </div>
@@ -2181,17 +2223,11 @@ html[dir="rtl"] .cust-current-dish-banner {
     <!-- Sheet Navigation Bar -->
     <div class="sheet-top-nav">
       <button class="sheet-icon-btn" onclick="closeDishBottomSheet()" title="Fermer">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M15 18l-6-6 6-6"/>
-        </svg>
+        <span class="msi" aria-hidden="true">chevron_left</span>
       </button>
 
       <button class="sheet-icon-btn" onclick="shareCurrentSheetDish()" title="Partager">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-          <polyline points="16 6 12 2 8 6"/>
-          <line x1="12" y1="2" x2="12" y2="15"/>
-        </svg>
+        <span class="msi" aria-hidden="true">ios_share</span>
       </button>
     </div>
 
@@ -2203,13 +2239,13 @@ html[dir="rtl"] .cust-current-dish-banner {
           <img src="" id="sheetLeftPeek">
         </div>
         <button class="peek-nav-btn left-btn" onclick="changeSheetDishImage('prev')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 18l-6-6 6-6"/></svg>
+          <span class="msi" aria-hidden="true">chevron_left</span>
         </button>
         <div class="main-dish-visual">
           <img src="" id="sheetMainPhoto">
         </div>
         <button class="peek-nav-btn right-btn" onclick="changeSheetDishImage('next')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18l6-6-6-6"/></svg>
+          <span class="msi" aria-hidden="true">chevron_right</span>
         </button>
         <div class="side-peek right" onclick="changeSheetDishImage('next')">
           <img src="" id="sheetRightPeek">
@@ -2262,7 +2298,7 @@ html[dir="rtl"] .cust-current-dish-banner {
         <div class="cust-dish-baseprice" id="custDishBasePrice">0 DH</div>
       </div>
       <button class="cust-close-btn" onclick="closeCustomizationModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <span class="msi" aria-hidden="true">close</span>
       </button>
     </div>
 
@@ -2303,17 +2339,11 @@ html[dir="rtl"] .cust-current-dish-banner {
     <!-- Top Nav Header -->
     <div class="cart-sheet-top-bar">
       <button type="button" class="cart-nav-icon-btn" onclick="closeCartModal(event)" title="Retour">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M15 18l-6-6 6-6"/>
-        </svg>
+        <span class="msi" aria-hidden="true">chevron_left</span>
       </button>
       <h2 class="cart-sheet-heading" id="cartModalTitle">Mon Panier</h2>
       <button type="button" class="cart-nav-icon-btn" onclick="shareCartOrClose()" title="Partager">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-          <polyline points="16 6 12 2 8 6"/>
-          <line x1="12" y1="2" x2="12" y2="15"/>
-        </svg>
+        <span class="msi" aria-hidden="true">ios_share</span>
       </button>
     </div>
 
@@ -2355,9 +2385,7 @@ html[dir="rtl"] .cust-current-dish-banner {
       <!-- Order Success View (shown after confirming order directly to admin) -->
       <div id="cartSuccessView" style="display:none; padding: 24px 8px; text-align: center;">
         <div style="width: 72px; height: 72px; border-radius: 50%; background: #DCFCE7; color: #16A34A; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-          <svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
+          <span class="msi xl" style="font-size:40px; font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 40;" aria-hidden="true">check_circle</span>
         </div>
         <h3 style="font-family: var(--font-serif); font-size: 24px; font-weight: 700; color: var(--text-dark); margin: 0 0 8px;" id="orderSuccessTitle">
           Commande confirmée !
@@ -2399,7 +2427,7 @@ html[dir="rtl"] .cust-current-dish-banner {
 
 <!-- Toast Notice -->
 <div class="toast-notice" id="toastNotice">
-  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+  <span class="msi sm" style="color:#22C55E; font-variation-settings:'FILL' 1,'wght' 700,'GRAD' 0,'opsz' 24;" aria-hidden="true">check_circle</span>
   <span id="toastText">Ajouté au panier !</span>
 </div>
 

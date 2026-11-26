@@ -1,17 +1,21 @@
 /* ==========================================================================
-   Wevtex Digital Menu — Shared Theme Tokens
-   EXACT mirror of the Foores rebrand (restaurant2/css/theme.css v36–v40).
-   Plus Jakarta Sans everywhere. Plum / cream / brass + bright gold accents.
+   Wevtex Digital Menu — Shared Theme Tokens (v2 — bolder, modern)
+   Plus Jakarta Sans + Material Symbols (Google Fonts). Plum / cream / brass + bright gold.
    ========================================================================== */
 
+/* Material Symbols Rounded — Google Font icon system. Loaded via @import so
+   every page that pulls theme.css gets icons without needing its own <link>. */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
 :root {
-  /* === EXACT Foores palette (see restaurant2/css/theme.css:1018-1030) === */
-  --dark:          #2A1324;          /* deep plum: body text + all dark surfaces */
-  --light:         #F2EEE6;          /* warm cream canvas */
-  --accent:        #883A61;          /* plum accent: links, eyebrows, icons, borders */
-  --brass:         #C8911F;          /* readable gold: stars, prices, highlights */
+  /* === EXACT Foores palette === */
+  --dark:          #2A1324;
+  --light:         #F2EEE6;
+  --accent:        #883A61;
+  --brass:         #C8911F;
   --star:          #C8911F;
-  --gold:          #F1AC18;          /* bright gold: button fills + banner accents */
+  --gold:          #F1AC18;
   --amber:         #E7A545;
   --plum-deep:     #2A1324;
   --plum-mid:      #5A2340;
@@ -32,85 +36,121 @@
   --bad-bg: rgba(204,1,10,.12);   --bad-ink: #9b020a;
   --green-2:#189E01; --red:#CC010A;
 
-  /* Typography — EXACTLY matches the Foores rebrand: Plus Jakarta Sans
-     everywhere, 800 weight on headings, -0.02em tracking. No serif. */
+  /* Typography — bolder than v1: body baseline 600, headings 900, tighter tracking */
   --font-heading: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-body:    'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Radii — pills (999) for buttons + badges, soft 14–22 for cards */
-  --radius-sm: 4px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
   --radius-full: 9999px;
 
-  /* Shadows — Foores 2026 look */
-  --shadow-card:  0 1px 2px rgba(42,19,36,.04), 0 8px 24px rgba(42,19,36,.06);
-  --shadow-soft:  0 1px 3px rgba(42,19,36,.05);
-  --shadow-hover: 0 2px 8px rgba(42,19,36,.06), 0 16px 36px rgba(42,19,36,.14);
-  --shadow-gold:  0 8px 20px rgba(241,172,24,.30);
-  --shadow-gold-hover: 0 12px 28px rgba(241,172,24,.45);
+  /* Shadows — richer depth for the "well designed cards" ask */
+  --shadow-card:  0 1px 2px rgba(42,19,36,.05), 0 12px 32px rgba(42,19,36,.08);
+  --shadow-soft:  0 1px 3px rgba(42,19,36,.06);
+  --shadow-hover: 0 4px 12px rgba(42,19,36,.08), 0 24px 48px rgba(42,19,36,.18);
+  --shadow-gold:  0 10px 24px rgba(241,172,24,.34);
+  --shadow-gold-hover: 0 14px 32px rgba(241,172,24,.48);
+  --shadow-inner: inset 0 1px 0 rgba(255,255,255,.4);
 
   --transition: all .2s ease;
+  --transition-smooth: all .35s cubic-bezier(.4,0,.2,1);
 }
 
-/* === Base === */
+/* === Base — body is 600 now, not 400. Everything reads bolder. === */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { background: var(--light); color: var(--text); font-family: var(--font-body); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+html, body {
+  background: var(--light); color: var(--text);
+  font-family: var(--font-body); font-weight: 600;
+  line-height: 1.5; -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
 html { scroll-behavior: smooth; }
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
-button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; font-weight: 600; }
 button { cursor: pointer; border: none; background: none; }
+strong, b { font-weight: 800; }
 
-/* EVERY heading in Plus Jakarta Sans — Foores rule from theme.css:1033-1037 */
+/* Headings — pushed to 900 (black) for the bolder request */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  font-weight: 800;
-  letter-spacing: -.02em;
-  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: -.025em;
+  line-height: 1.05;
   color: var(--dark);
 }
+h1 { font-size: clamp(32px, 4.4vw, 48px); }
+h2 { font-size: clamp(26px, 3vw, 34px); }
+h3 { font-size: clamp(20px, 2.2vw, 24px); }
 
-/* Elegant plum scrollbar (Foores theme.css:1005-1009) */
+/* Elegant plum scrollbar */
 * { scrollbar-width: thin; scrollbar-color: rgba(136,58,97,.4) transparent; }
 ::-webkit-scrollbar      { width: 11px; height: 11px; }
 ::-webkit-scrollbar-track{ background: transparent; }
 ::-webkit-scrollbar-thumb{ background: rgba(136,58,97,.38); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
 ::-webkit-scrollbar-thumb:hover{ background: rgba(136,58,97,.6); background-clip: content-box; }
 
-/* === Primary button (EXACT Foores recipe — rebrand line 1040-1056) === */
+/* ==========================================================================
+   Material Symbols (Google Font icons) — replaces the inline SVGs sitewide
+   ========================================================================== */
+.msi, .material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+.msi.filled { font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24; }
+.msi.bold   { font-variation-settings: 'FILL' 0, 'wght' 700, 'GRAD' 0, 'opsz' 24; }
+.msi.sm     { font-size: 18px; }
+.msi.lg     { font-size: 28px; }
+.msi.xl     { font-size: 36px; }
+
+/* === Primary button — bolder weight, bigger grip === */
 .btn-primary {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 12px 24px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 14px 28px;
   background: linear-gradient(135deg, var(--gold), var(--amber));
-  color: var(--dark); font-weight: 800; letter-spacing: -.005em;
+  color: var(--dark); font-weight: 900; letter-spacing: -.005em;
   border: none; border-radius: var(--radius-full);
-  box-shadow: var(--shadow-gold);
-  transition: var(--transition);
+  box-shadow: var(--shadow-gold), var(--shadow-inner);
+  transition: var(--transition-smooth);
 }
 .btn-primary:hover {
   background: linear-gradient(135deg, #FFC93C, #EFA200);
   color: var(--dark);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-gold-hover);
+  box-shadow: var(--shadow-gold-hover), var(--shadow-inner);
 }
+.btn-primary:active { transform: translateY(0); }
 
 .btn-ghost {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 11px 22px; border-radius: var(--radius-full);
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 13px 24px; border-radius: var(--radius-full);
   background: transparent; color: var(--dark);
-  border: 1.5px solid rgba(42,19,36,.22);
-  font-weight: 700; transition: var(--transition);
+  border: 2px solid rgba(42,19,36,.22);
+  font-weight: 800; transition: var(--transition);
 }
 .btn-ghost:hover { border-color: var(--dark); background: var(--dark); color: var(--text-onDark); }
 
 .btn-outline-dark {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 11px 22px; border-radius: var(--radius-full);
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 13px 24px; border-radius: var(--radius-full);
   background: transparent;
-  border: 1.5px solid rgba(241,172,24,.6);
-  color: var(--text-onDark); font-weight: 700;
+  border: 2px solid rgba(241,172,24,.6);
+  color: var(--text-onDark); font-weight: 800;
   transition: var(--transition);
 }
 .btn-outline-dark:hover {
@@ -121,39 +161,87 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-danger {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 10px 18px; border-radius: var(--radius-full);
-  background: var(--bad-bg); color: var(--bad-ink); font-weight: 800;
+  padding: 11px 20px; border-radius: var(--radius-full);
+  background: var(--bad-bg); color: var(--bad-ink); font-weight: 900;
   transition: var(--transition);
 }
 .btn-danger:hover { background: rgba(204,1,10,.2); }
 
-/* === Card === */
+/* ==========================================================================
+   Card — the "more well-designed cards" ask.
+   Softer inner glow on top, deeper shadow below, lift on hover.
+   ========================================================================== */
 .card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card), var(--shadow-inner);
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+.card.hoverable:hover,
+.card--hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover), var(--shadow-inner);
+  border-color: var(--border-strong);
 }
 
-/* === Badges === */
-.badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius-full); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+/* Reusable dish / menu-item card — used by menu.php and dish.php */
+.item-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card), var(--shadow-inner);
+  overflow: hidden;
+  transition: var(--transition-smooth);
+  display: flex; flex-direction: column;
+}
+.item-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-hover), var(--shadow-inner);
+}
+.item-card .item-media {
+  position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--track);
+}
+.item-card .item-media img { width:100%; height:100%; object-fit: cover; transition: transform .5s cubic-bezier(.4,0,.2,1); }
+.item-card:hover .item-media img { transform: scale(1.06); }
+.item-card .item-body { padding: 18px 20px 20px; display:flex; flex-direction: column; gap: 10px; flex: 1; }
+.item-card .item-title { font-size: 20px; font-weight: 900; letter-spacing: -.02em; color: var(--dark); }
+.item-card .item-desc { font-size: 14px; font-weight: 500; color: var(--muted-ink); line-height: 1.5; }
+.item-card .item-foot { margin-top: auto; display:flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 6px; }
+
+/* === Badges — bolder tracking === */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 13px; border-radius: var(--radius-full);
+  font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;
+}
 .badge-ok   { background: var(--ok-bg);   color: var(--ok-ink); }
 .badge-warn { background: var(--warn-bg); color: var(--warn-ink); }
 .badge-bad  { background: var(--bad-bg);  color: var(--bad-ink); }
 .badge-gold { background: rgba(200,145,31,.16); color: #9A6A05; }
 
-/* === Inputs === */
+/* === Inputs — thicker border, bolder text === */
 .input, .select, .textarea {
-  width: 100%; padding: 11px 14px;
+  width: 100%; padding: 13px 16px;
   background: var(--surface); color: var(--text);
-  border: 1px solid var(--border-strong); border-radius: var(--radius-md);
-  font-family: var(--font-body);
+  border: 1.5px solid var(--border-strong); border-radius: var(--radius-md);
+  font-family: var(--font-body); font-weight: 600;
   transition: var(--transition);
 }
-.input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(136,58,97,.12); }
-.label { display: block; font-size: 12px; font-weight: 700; color: var(--muted-ink); margin-bottom: 6px; letter-spacing: .06em; text-transform: uppercase; }
+.input:focus, .select:focus, .textarea:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(136,58,97,.14);
+}
+.label {
+  display: block; font-size: 12px; font-weight: 800; color: var(--muted-ink);
+  margin-bottom: 7px; letter-spacing: .08em; text-transform: uppercase;
+}
 
-/* Price — brass ink on soft brass tint (Foores theme.css:1084-1085) */
-.price { font-family: var(--font-heading); font-weight: 800; color: #9A6A05; font-size: 18px; letter-spacing: -.01em; }
-.price .currency { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; margin-left: 3px; opacity: .8; }
+/* Price — heavier */
+.price { font-family: var(--font-heading); font-weight: 900; color: #9A6A05; font-size: 20px; letter-spacing: -.01em; }
+.price .currency { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-left: 3px; opacity: .8; }
 
-/* Stars always brass gold (per project memory: gold stars) */
-.star, .stars i { color: var(--brass); }
+/* Stars always brass gold */
+.star, .stars i, .stars .msi { color: var(--brass); }

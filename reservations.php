@@ -42,7 +42,8 @@ $csrf = csrf_token();
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#2A1324">
 <link rel="stylesheet" href="/shared/theme.css">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0&display=swap" rel="stylesheet">
 <style>
   body { background:
     radial-gradient(1000px 500px at 110% -10%, rgba(241,172,24,.12), transparent 60%),
@@ -53,16 +54,16 @@ $csrf = csrf_token();
   .wrap { max-width: 620px; margin: 0 auto; padding: 48px 20px 60px;}
   .back { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted-ink); font-weight: 700; margin-bottom: 20px;}
   .back:hover { color: var(--accent);}
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 36px 32px; box-shadow: 0 1px 2px rgba(42,19,36,.04), 0 24px 60px rgba(42,19,36,.12);}
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 36px 32px; box-shadow: 0 1px 2px rgba(42,19,36,.05), 0 30px 70px rgba(42,19,36,.14), inset 0 1px 0 rgba(255,255,255,.4);}
   @media (min-width: 640px) { .card { padding: 48px 48px;} }
 
   .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 20px;}
-  .brand .mark { width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, var(--gold), var(--amber)); display: grid; place-items: center; color: var(--dark); font-weight: 800; font-size: 18px; box-shadow: 0 10px 24px rgba(241,172,24,.35), inset 0 0 0 1px rgba(255,255,255,.4);}
-  .brand h2 { font-weight: 800; font-size: 18px; letter-spacing: -.01em;}
-  .brand p { font-size: 11px; color: var(--accent); letter-spacing: .18em; text-transform: uppercase; font-weight: 800;}
+  .brand .mark { width: 46px; height: 46px; border-radius: 13px; background: linear-gradient(135deg, var(--gold), var(--amber)); display: grid; place-items: center; color: var(--dark); font-weight: 900; font-size: 20px; box-shadow: 0 10px 24px rgba(241,172,24,.35), inset 0 0 0 1px rgba(255,255,255,.4);}
+  .brand h2 { font-weight: 900; font-size: 19px; letter-spacing: -.02em;}
+  .brand p { font-size: 11px; color: var(--accent); letter-spacing: .18em; text-transform: uppercase; font-weight: 900;}
 
-  h1 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; margin-bottom: 6px;}
-  .lede { color: var(--muted-ink); font-size: 14px; margin-bottom: 24px;}
+  h1 { font-size: 32px; font-weight: 900; letter-spacing: -.025em; margin-bottom: 8px;}
+  .lede { color: var(--muted-ink); font-size: 14.5px; font-weight: 600; margin-bottom: 24px;}
   .hours-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 18px;}
   .hours-chip.open { background: var(--ok-bg); color: var(--ok-ink);}
   .hours-chip.closing_soon { background: rgba(241,172,24,.14); color: #8b5a00;}
@@ -90,7 +91,7 @@ $csrf = csrf_token();
 </head>
 <body>
 <div class="wrap">
-  <a class="back" href="/menu.php?r=<?= e($rest['slug']) ?>">← Retour au menu</a>
+  <a class="back" href="/menu.php?r=<?= e($rest['slug']) ?>"><span class="msi sm" aria-hidden="true">arrow_back</span> Retour au menu</a>
 
   <div class="card">
     <div class="brand">
@@ -100,7 +101,7 @@ $csrf = csrf_token();
 
     <?php if ($ok): ?>
       <div class="success">
-        <div class="big">🎉</div>
+        <div class="big"><span class="msi" style="font-size:72px; color: var(--green-2); font-variation-settings:'FILL' 1,'wght' 700,'GRAD' 0,'opsz' 48;" aria-hidden="true">task_alt</span></div>
         <h3>Demande envoyée !</h3>
         <p>Nous vous contacterons rapidement pour confirmer. Un sms ou un appel au numéro indiqué.</p>
         <div class="actions">

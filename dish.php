@@ -57,9 +57,34 @@ $backUrl = '/menu.php?r=' . rawurlencode($d['rest_slug']);
 <!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0&display=swap" rel="stylesheet">
 
 <style>
+/* Material Symbols Rounded — Google Font icon system */
+.msi, .material-symbols-rounded {
+  font-family: 'Material Symbols Rounded' !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+.msi.filled { font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24; }
+.msi.sm { font-size: 18px; }
+.msi.lg { font-size: 28px; }
+.msi.xl { font-size: 36px; }
+
 :root {
   --bg-canvas: #FAF7F2;
   --bg-card: #FFFFFF;
@@ -778,17 +803,11 @@ body {
   <!-- Top Bar -->
   <div class="top-nav">
     <a href="<?= e($backUrl) ?>" class="nav-icon-btn" title="Retour au menu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M15 18l-6-6 6-6"/>
-      </svg>
+      <span class="msi" aria-hidden="true">chevron_left</span>
     </a>
 
     <button class="nav-icon-btn" onclick="shareDish()" title="Partager">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-        <polyline points="16 6 12 2 8 6"/>
-        <line x1="12" y1="2" x2="12" y2="15"/>
-      </svg>
+      <span class="msi" aria-hidden="true">ios_share</span>
     </button>
   </div>
 
@@ -801,9 +820,7 @@ body {
 
     <!-- Left Button Arrow (Switches image of same dish) -->
     <button class="peek-nav-btn left-btn" onclick="changeDishImage('prev')" title="Photo précédente">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M15 18l-6-6 6-6"/>
-      </svg>
+      <span class="msi" aria-hidden="true">chevron_left</span>
     </button>
 
     <!-- Main Visual of the dish -->
@@ -813,9 +830,7 @@ body {
 
     <!-- Right Button Arrow (Switches image of same dish) -->
     <button class="peek-nav-btn right-btn" onclick="changeDishImage('next')" title="Photo suivante">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M9 18l6-6-6-6"/>
-      </svg>
+      <span class="msi" aria-hidden="true">chevron_right</span>
     </button>
 
     <!-- Right Peek Image of same dish -->
@@ -870,7 +885,7 @@ body {
         <div class="cust-dish-baseprice"><?= number_format((float)$d['price'], 0, ',', ' ') ?> <?= e($CURRENCY) ?></div>
       </div>
       <button class="cust-close-btn" onclick="closeCustomizationModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <span class="msi" aria-hidden="true">close</span>
       </button>
     </div>
 
@@ -907,7 +922,7 @@ body {
 
 <!-- Toast Notice -->
 <div class="toast-notice" id="toastNotice">
-  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#22C55E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+  <span class="msi sm" style="color:#22C55E; font-variation-settings:'FILL' 1,'wght' 700,'GRAD' 0,'opsz' 24;" aria-hidden="true">check_circle</span>
   <span id="toastText">Ajouté au panier avec succès !</span>
 </div>
 
