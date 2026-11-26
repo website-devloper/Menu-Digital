@@ -3,14 +3,14 @@
 
 /* === Flag + spice metadata === */
 const DIETARY_FLAGS = [
-  'vegan'        => ['Vegan',          '🌱'],
-  'vegetarien'   => ['Végétarien',     '🥗'],
-  'halal'        => ['Halal',          '☪'],
-  'gluten-free'  => ['Sans gluten',    '🌾'],
-  'gluten'       => ['Contient gluten','🌾'],
-  'lactose-free' => ['Sans lactose',   '🥛'],
-  'lactose'      => ['Contient lactose','🥛'],
-  'nuts'         => ['Fruits à coque', '🥜'],
+  'vegan'        => ['Vegan',          '<i class="fa-solid fa-leaf" style="color:#2E7D32;"></i>'],
+  'vegetarien'   => ['Végétarien',     '<i class="fa-solid fa-seedling" style="color:#388E3C;"></i>'],
+  'halal'        => ['Halal',          '<i class="fa-solid fa-star-and-crescent" style="color:#2A1324;"></i>'],
+  'gluten-free'  => ['Sans gluten',    '<i class="fa-solid fa-wheat-awn-circle-exclamation" style="color:#8D6E63;"></i>'],
+  'gluten'       => ['Contient gluten','<i class="fa-solid fa-wheat-awn" style="color:#8D6E63;"></i>'],
+  'lactose-free' => ['Sans lactose',   '<i class="fa-solid fa-ban" style="color:#1565C0;"></i>'],
+  'lactose'      => ['Contient lactose','<i class="fa-solid fa-cheese" style="color:#F9A825;"></i>'],
+  'nuts'         => ['Fruits à coque', '<i class="fa-solid fa-circle-nodes" style="color:#A1887F;"></i>'],
 ];
 
 function flag_label(string $f): array { return DIETARY_FLAGS[$f] ?? [$f, '']; }

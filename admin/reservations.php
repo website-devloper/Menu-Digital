@@ -93,13 +93,13 @@ require __DIR__ . '/../shared/layout.php';
           <td style="color:var(--muted-ink);font-size:13px;max-width:240px;"><?= $r['notes'] ? e($r['notes']) : '—' ?></td>
           <td class="row-actions">
             <?php if ($r['status'] !== 'confirmed'): ?>
-              <form method="post" style="display:inline;"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="confirm"><input type="hidden" name="id" value="<?= (int)$r['id'] ?>"><button class="icon-btn" title="Confirmer" style="color:var(--green-2);">✓</button></form>
+              <form method="post" style="display:inline;"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="confirm"><input type="hidden" name="id" value="<?= (int)$r['id'] ?>"><button class="icon-btn" title="Confirmer" style="color:var(--green-2);"><i class="fa-solid fa-check"></i></button></form>
             <?php endif; ?>
             <?php if ($r['status'] !== 'cancelled'): ?>
-              <form method="post" style="display:inline;" onsubmit="return confirm('Annuler cette réservation ?');"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="cancel"><input type="hidden" name="id" value="<?= (int)$r['id'] ?>"><button class="icon-btn danger" title="Annuler">✕</button></form>
+              <form method="post" style="display:inline;" onsubmit="return confirm('Annuler cette réservation ?');"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="cancel"><input type="hidden" name="id" value="<?= (int)$r['id'] ?>"><button class="icon-btn danger" title="Annuler"><i class="fa-solid fa-xmark"></i></button></form>
             <?php endif; ?>
             <?php if ($r['status'] !== 'pending'): ?>
-              <form method="post" style="display:inline;"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="pend"><input type="hidden" name="id" value="<?= (int)$r['id'] ?>"><button class="icon-btn" title="En attente">↺</button></form>
+              <form method="post" style="display:inline;"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="pend"><input type="hidden" name="id" value="<?= (int)$r['id'] ?>"><button class="icon-btn" title="En attente"><i class="fa-solid fa-rotate-left"></i></button></form>
             <?php endif; ?>
           </td>
         </tr>

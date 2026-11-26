@@ -177,15 +177,15 @@ require __DIR__ . '/../shared/layout.php';
                 🇫🇷 Français <span style="font-size:10px; opacity:0.8;">(Principal)</span>
               </button>
               <button type="button" class="lang-tab-pill" id="tabBtn_en" onclick="switchDishLang('en')" style="padding:5px 12px; border-radius:9999px; border:none; font-size:12.5px; font-weight:700; cursor:pointer; background:transparent; color:var(--muted-ink);">
-                🇬🇧 English <span id="badge_en_ok" style="color:var(--ok); font-weight:800;"><?= !empty($editing['name_en']) ? '✓' : '' ?></span>
+                🇬🇧 English <span id="badge_en_ok" style="color:var(--green-2); font-weight:800;"><?= !empty($editing['name_en']) ? '<i class="fa-solid fa-circle-check"></i>' : '' ?></span>
               </button>
               <button type="button" class="lang-tab-pill" id="tabBtn_ar" onclick="switchDishLang('ar')" style="padding:5px 12px; border-radius:9999px; border:none; font-size:12.5px; font-weight:700; cursor:pointer; background:transparent; color:var(--muted-ink);">
-                🇲🇦 العربية <span id="badge_ar_ok" style="color:var(--ok); font-weight:800;"><?= !empty($editing['name_ar']) ? '✓' : '' ?></span>
+                🇲🇦 العربية <span id="badge_ar_ok" style="color:var(--green-2); font-weight:800;"><?= !empty($editing['name_ar']) ? '<i class="fa-solid fa-circle-check"></i>' : '' ?></span>
               </button>
             </div>
 
             <button type="button" class="btn-ghost" style="font-size:12px; padding:6px 12px; border-radius:9999px; background:var(--surface); display:inline-flex; align-items:center; gap:5px; font-weight:700;" onclick="autoTranslateDish()" title="Générer automatiquement l'anglais et l'arabe à partir du français">
-              <span>✨ Auto-traduire</span>
+              <span><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-traduire</span>
             </button>
           </div>
         </div>
@@ -263,7 +263,10 @@ require __DIR__ . '/../shared/layout.php';
             $checked = ($editing ? (int)$editing['spice'] : 0) === $i; ?>
             <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:1px solid <?= $checked ? 'var(--accent)' : 'var(--border-strong)' ?>;border-radius:var(--radius-md);cursor:pointer;background:<?= $checked ? 'rgba(136,58,97,.06)' : 'var(--surface)' ?>;">
               <input type="radio" name="spice" value="<?= $i ?>" <?= $checked ? 'checked' : '' ?> style="accent-color:var(--accent);">
-              <span style="font-weight:700;"><?= ['Aucun','Doux 🌶','Moyen 🌶🌶','Fort 🌶🌶🌶'][$i] ?></span>
+              <span style="font-weight:700;">
+                <?= ['Aucun','Doux','Moyen','Fort'][$i] ?>
+                <?php for ($p = 0; $p < $i; $p++): ?><i class="fa-solid fa-pepper-hot" style="color:#C62828;font-size:12px;"></i><?php endfor; ?>
+              </span>
             </label>
           <?php endfor; ?>
         </div>
@@ -280,7 +283,7 @@ require __DIR__ . '/../shared/layout.php';
           ?>
             <label style="display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border:1px solid <?= $on ? 'var(--accent)' : 'var(--border-strong)' ?>;border-radius:999px;cursor:pointer;background:<?= $on ? 'rgba(136,58,97,.06)' : 'transparent' ?>;font-weight:700;font-size:13px;">
               <input type="checkbox" name="<?= e($fname) ?>" <?= $on ? 'checked' : '' ?> style="accent-color:var(--accent);">
-              <?= e($em . ' ' . $lbl) ?>
+              <?= $em ?> <?= e($lbl) ?>
             </label>
           <?php endforeach; ?>
         </div>
@@ -329,7 +332,7 @@ require __DIR__ . '/../shared/layout.php';
           <input type="hidden" name="action" value="del_photo">
           <input type="hidden" name="photo_id" value="<?= (int)$gp['id'] ?>">
           <input type="hidden" name="dish_id" value="<?= (int)$editing['id'] ?>">
-          <button class="icon-btn danger" title="Supprimer">✕</button>
+          <button class="icon-btn danger" title="Supprimer"><i class="fa-solid fa-trash"></i></button>
         </form>
       </div>
     <?php endforeach; ?>
@@ -371,7 +374,7 @@ require __DIR__ . '/../shared/layout.php';
         <td>
           <div style="display:flex;align-items:center;gap:12px;min-width:0;">
             <div class="thumb">
-              <?php if ($d['photo']): ?><img src="<?= e(UPLOADS_URL . '/' . $d['photo']) ?>" alt=""><?php else: ?><span>★</span><?php endif; ?>
+              <?php if ($d['photo']): ?><img src="<?= e(UPLOADS_URL . '/' . $d['photo']) ?>" alt=""><?php else: ?><i class="fa-solid fa-utensils" style="color:var(--muted-ink);"></i><?php endif; ?>
             </div>
             <div style="min-width:0;">
               <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -397,10 +400,10 @@ require __DIR__ . '/../shared/layout.php';
           </form>
         </td>
         <td class="row-actions">
-          <a class="icon-btn" href="/admin/dishes.php?edit=<?= (int)$d['id'] ?>" title="Modifier">✎</a>
+          <a class="icon-btn" href="/admin/dishes.php?edit=<?= (int)$d['id'] ?>" title="Modifier"><i class="fa-solid fa-pen"></i></a>
           <form method="post" style="display:inline;" onsubmit="return confirm('Supprimer ce plat ?');">
             <input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int)$d['id'] ?>">
-            <button class="icon-btn danger" title="Supprimer">✕</button>
+            <button class="icon-btn danger" title="Supprimer"><i class="fa-solid fa-trash"></i></button>
           </form>
         </td>
       </tr>
@@ -520,8 +523,8 @@ function autoTranslateDish() {
     document.getElementById('dish_desc_ar').value = descAr;
   }
 
-  document.getElementById('badge_en_ok').innerText = '✓';
-  document.getElementById('badge_ar_ok').innerText = '✓';
+  document.getElementById('badge_en_ok').innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+  document.getElementById('badge_ar_ok').innerHTML = '<i class="fa-solid fa-circle-check"></i>';
 
   alert('✨ Traductions générées avec succès ! Vous pouvez basculer sur les onglets English et العربية pour vérifier ou ajuster.');
 }
@@ -561,7 +564,7 @@ function renderOptionsBuilder() {
             <label style="font-size:12px; font-weight:700; color:var(--muted-ink); display:block; margin-bottom:4px;">Nom du groupe (Français)</label>
             <input type="text" class="input" value="${escapeHtml(grp.name || '')}" oninput="updateGroupName(${gIdx}, this.value)" placeholder="ex: Choix de Sauce, Suppléments">
             <button type="button" class="btn-ghost" style="font-size:11.5px; padding:3px 10px; margin-top:6px; border-radius:999px;" onclick="toggleGroupLang(${gIdx})">
-              🌐 ${isLangOpen ? 'Masquer traductions' : 'Traductions (English / العربية)'} ${grp.name_en || grp.name_ar ? '✓' : ''}
+              <i class="fa-solid fa-globe"></i> ${isLangOpen ? 'Masquer traductions' : 'Traductions (English / العربية)'} ${grp.name_en || grp.name_ar ? '<i class="fa-solid fa-check" style="color:var(--green-2)"></i>' : ''}
             </button>
           </div>
           <div>
@@ -572,7 +575,7 @@ function renderOptionsBuilder() {
             </select>
           </div>
         </div>
-        <button type="button" class="icon-btn danger" style="margin-top:20px;" title="Supprimer ce groupe" onclick="removeOptionGroup(${gIdx})">✕</button>
+        <button type="button" class="icon-btn danger" style="margin-top:20px;" title="Supprimer ce groupe" onclick="removeOptionGroup(${gIdx})"><i class="fa-solid fa-trash"></i></button>
       </div>
 
       <!-- Expanded Language Row for Group Title -->
@@ -600,7 +603,7 @@ function renderOptionsBuilder() {
                   <input type="number" class="input" style="width:100%;" min="0" step="0.5" value="${Number(it.price || 0)}" oninput="updateItemPrice(${gIdx}, ${iIdx}, this.value)" placeholder="0">
                   <span style="font-size:12px; font-weight:700; color:var(--muted-ink);"><?= e($rest['currency']) ?></span>
                 </div>
-                <button type="button" class="icon-btn danger" style="width:32px; height:32px;" title="Supprimer ce choix" onclick="removeItem(${gIdx}, ${iIdx})">✕</button>
+                <button type="button" class="icon-btn danger" style="width:32px; height:32px;" title="Supprimer ce choix" onclick="removeItem(${gIdx}, ${iIdx})"><i class="fa-solid fa-xmark"></i></button>
               </div>
 
               <!-- Translated Choice Subfields (Visible when group translation is open) -->

@@ -36,7 +36,7 @@ require __DIR__ . '/../shared/layout.php';
 
 <div class="page-head">
   <div>
-    <h1>Bonjour <?= e(explode(' ', $user['display_name'] ?: 'Admin')[0]) ?> <span class="star">★</span></h1>
+    <h1>Bonjour <?= e(explode(' ', $user['display_name'] ?: 'Admin')[0]) ?> <i class="fa-solid fa-star" style="color:var(--gold);font-size:.75em;vertical-align:baseline;"></i></h1>
     <div class="sub">Voici l'état de votre menu digital.</div>
   </div>
   <a class="btn-primary" href="/admin/dishes.php?new=1">+ Ajouter un plat</a>
@@ -56,7 +56,7 @@ require __DIR__ . '/../shared/layout.php';
 <?php if (!empty($recentOrders)): ?>
 <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 2px 14px;">
   <h2 style="font-size:18px;font-weight:800;margin:0;">Dernières commandes de table</h2>
-  <a href="/admin/orders.php" style="color:var(--accent);font-weight:700;font-size:13px;text-decoration:none;">Voir toutes les commandes (<?= $todayOrdersCount ?>) →</a>
+  <a href="/admin/orders.php" style="color:var(--accent);font-weight:700;font-size:13px;text-decoration:none;">Voir toutes les commandes (<?= $todayOrdersCount ?>) <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i></a>
 </div>
 <div class="table-wrap" style="margin-bottom:26px;">
   <table>
@@ -78,7 +78,7 @@ require __DIR__ . '/../shared/layout.php';
         <td style="max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;color:var(--text);"><?= e($itemsSummary) ?></td>
         <td style="font-weight:800;color:var(--accent);"><?= number_format((float)$ord['total_amount'], 2, ',', ' ') ?> <?= e($rest['currency'] ?: 'DH') ?></td>
         <td><span class="badge <?= e($badge) ?>"><?= e($stLabel) ?></span></td>
-        <td style="text-align:right;"><a class="icon-btn" href="/admin/orders.php" title="Gérer">→</a></td>
+        <td style="text-align:right;"><a class="icon-btn" href="/admin/orders.php" title="Gérer"><i class="fa-solid fa-arrow-right"></i></a></td>
       </tr>
     <?php endforeach; ?>
     </tbody>
@@ -101,7 +101,7 @@ require __DIR__ . '/../shared/layout.php';
         <td><div style="font-weight:700;"><?= e($r['name']) ?></div><div style="color:var(--muted-ink);font-size:12px;"><a href="tel:<?= e($r['phone']) ?>" style="color:inherit;"><?= e($r['phone']) ?></a></div></td>
         <td><span class="badge badge-gold"><?= (int)$r['party_size'] ?> pers.</span></td>
         <td><span class="badge <?= e($badge) ?>"><?= e($label) ?></span></td>
-        <td style="text-align:right;"><a class="icon-btn" href="/admin/reservations.php" title="Gérer">→</a></td>
+        <td style="text-align:right;"><a class="icon-btn" href="/admin/reservations.php" title="Gérer"><i class="fa-solid fa-arrow-right"></i></a></td>
       </tr>
     <?php endforeach; ?>
     </tbody>
@@ -121,7 +121,7 @@ require __DIR__ . '/../shared/layout.php';
         <td>
           <div style="display:flex;align-items:center;gap:10px;">
             <div class="thumb">
-              <?php if ($d['photo']): ?><img src="<?= e(UPLOADS_URL . '/' . $d['photo']) ?>" alt=""><?php else: ?><span>★</span><?php endif; ?>
+              <?php if ($d['photo']): ?><img src="<?= e(UPLOADS_URL . '/' . $d['photo']) ?>" alt=""><?php else: ?><i class="fa-solid fa-utensils" style="color:var(--muted-ink);"></i><?php endif; ?>
             </div>
             <div><b><?= e($d['name']) ?></b></div>
           </div>
@@ -130,7 +130,7 @@ require __DIR__ . '/../shared/layout.php';
         <td class="price" style="font-size:14px;"><?= e(money((float)$d['price'])) ?></td>
         <td><?= $d['available'] ? '<span class="badge badge-ok">Disponible</span>' : '<span class="badge badge-bad">Épuisé</span>' ?></td>
         <td class="row-actions">
-          <a class="icon-btn" href="/admin/dishes.php?edit=<?= (int)$d['id'] ?>" title="Modifier">✎</a>
+          <a class="icon-btn" href="/admin/dishes.php?edit=<?= (int)$d['id'] ?>" title="Modifier"><i class="fa-solid fa-pen"></i></a>
         </td>
       </tr>
     <?php endforeach; endif; ?>

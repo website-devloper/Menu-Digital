@@ -208,10 +208,10 @@ toggleScope();
             </form>
           </td>
           <td class="row-actions">
-            <a class="icon-btn" href="/admin/promotions.php?edit=<?= (int)$p['id'] ?>" title="Modifier">✎</a>
+            <a class="icon-btn" href="/admin/promotions.php?edit=<?= (int)$p['id'] ?>" title="Modifier"><i class="fa-solid fa-pen"></i></a>
             <form method="post" style="display:inline;" onsubmit="return confirm('Supprimer cette promotion ?');">
               <input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
-              <button class="icon-btn danger" title="Supprimer">✕</button>
+              <button class="icon-btn danger" title="Supprimer"><i class="fa-solid fa-trash"></i></button>
             </form>
           </td>
         </tr>

@@ -300,10 +300,10 @@ require __DIR__ . '/../shared/layout.php';
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
     <button type="button" class="btn-act btn-act-print" id="btnSoundToggle" onclick="toggleSoundAlert()" title="Activer/Désactiver l'alerte sonore">
-      <span id="soundIcon">🔊</span> <span id="soundText">Son activé</span>
+      <i id="soundIcon" class="fa-solid fa-volume-high"></i> <span id="soundText">Son activé</span>
     </button>
     <button type="button" class="btn-primary" onclick="pollNewOrders(true)">
-      ↻ Actualiser
+      <i class="fa-solid fa-arrows-rotate"></i> Actualiser
     </button>
   </div>
 </div>
@@ -313,23 +313,23 @@ require __DIR__ . '/../shared/layout.php';
     Toutes <span class="tab-badge"><?= $counts['all'] ?></span>
   </a>
   <a href="?status=pending" class="orders-tab <?= $filterStatus === 'pending' ? 'active' : '' ?>">
-    ⏳ En attente <span class="tab-badge" style="background:#FFE4E6;color:#BE123C;"><?= $counts['pending'] ?></span>
+    <i class="fa-solid fa-hourglass-half"></i> En attente <span class="tab-badge" style="background:#FFE4E6;color:#BE123C;"><?= $counts['pending'] ?></span>
   </a>
   <a href="?status=preparing" class="orders-tab <?= $filterStatus === 'preparing' ? 'active' : '' ?>">
-    🍳 En cuisine <span class="tab-badge"><?= $counts['preparing'] ?></span>
+    <i class="fa-solid fa-fire-burner"></i> En cuisine <span class="tab-badge"><?= $counts['preparing'] ?></span>
   </a>
   <a href="?status=served" class="orders-tab <?= $filterStatus === 'served' ? 'active' : '' ?>">
-    🍽️ Servies <span class="tab-badge"><?= $counts['served'] ?></span>
+    <i class="fa-solid fa-plate-wheat"></i> Servies <span class="tab-badge"><?= $counts['served'] ?></span>
   </a>
   <a href="?status=completed" class="orders-tab <?= $filterStatus === 'completed' ? 'active' : '' ?>">
-    ✓ Terminées <span class="tab-badge"><?= $counts['completed'] ?></span>
+    <i class="fa-solid fa-circle-check"></i> Terminées <span class="tab-badge"><?= $counts['completed'] ?></span>
   </a>
 </div>
 
 <div class="orders-grid" id="ordersGrid">
   <?php if (empty($orders)): ?>
     <div style="grid-column: 1 / -1; background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:48px 20px; text-align:center; color:var(--muted-ink);">
-      <div style="font-size:36px;margin-bottom:10px;">🍽️</div>
+      <div style="font-size:42px;margin-bottom:10px;color:var(--accent);"><i class="fa-solid fa-utensils"></i></div>
       <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;">Aucune commande pour le moment</div>
       <div style="font-size:13.5px;">Dès qu'un client clique sur "Confirmer la commande" sur une table, elle apparaîtra ici instantanément !</div>
     </div>
@@ -352,10 +352,10 @@ require __DIR__ . '/../shared/layout.php';
         <div class="order-card-top">
           <div>
             <div class="order-table-title">
-              <span>📍</span> <?= e($ord['table_number']) ?>
+              <i class="fa-solid fa-location-dot"></i> <?= e($ord['table_number']) ?>
             </div>
             <?php if (!empty($ord['customer_name'])): ?>
-              <div class="order-client-name">👤 <?= e($ord['customer_name']) ?></div>
+              <div class="order-client-name"><i class="fa-solid fa-user"></i> <?= e($ord['customer_name']) ?></div>
             <?php endif; ?>
           </div>
           <div style="text-align:right;">
@@ -390,26 +390,26 @@ require __DIR__ . '/../shared/layout.php';
           <div class="order-actions-bar">
             <?php if ($st === 'pending'): ?>
               <button type="button" class="btn-act btn-act-prepare" onclick="setOrderStatus(<?= (int)$ord['id'] ?>, 'preparing')">
-                🍳 Préparer
+                <i class="fa-solid fa-fire-burner"></i> Préparer
               </button>
             <?php elseif ($st === 'preparing'): ?>
               <button type="button" class="btn-act btn-act-serve" onclick="setOrderStatus(<?= (int)$ord['id'] ?>, 'served')">
-                🍽️ Servir
+                <i class="fa-solid fa-plate-wheat"></i> Servir
               </button>
             <?php elseif ($st === 'served'): ?>
               <button type="button" class="btn-act btn-act-done" onclick="setOrderStatus(<?= (int)$ord['id'] ?>, 'completed')">
-                ✓ Terminer
+                <i class="fa-solid fa-check"></i> Terminer
               </button>
             <?php endif; ?>
 
             <?php if ($st !== 'completed' && $st !== 'cancelled'): ?>
               <button type="button" class="btn-act btn-act-cancel" onclick="setOrderStatus(<?= (int)$ord['id'] ?>, 'cancelled')" title="Annuler">
-                ✕
+                <i class="fa-solid fa-xmark"></i>
               </button>
             <?php endif; ?>
 
             <button type="button" class="btn-act btn-act-print" onclick="printReceipt(<?= (int)$ord['id'] ?>)" title="Imprimer Ticket">
-              🖨️
+              <i class="fa-solid fa-print"></i>
             </button>
           </div>
         </div>
@@ -450,7 +450,7 @@ function playOrderChime() {
 
 function toggleSoundAlert() {
   soundEnabled = !soundEnabled;
-  document.getElementById('soundIcon').innerText = soundEnabled ? '🔊' : '🔇';
+  document.getElementById('soundIcon').className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
   document.getElementById('soundText').innerText = soundEnabled ? 'Son activé' : 'Son coupé';
   if (soundEnabled) playOrderChime();
 }

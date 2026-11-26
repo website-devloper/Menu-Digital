@@ -127,11 +127,11 @@ require __DIR__ . '/../shared/layout.php';
           </td>
           <td><span class="badge badge-gold"><?= (int)$c['dish_count'] ?> plats</span></td>
           <td class="row-actions">
-            <form method="post" style="display:inline;"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="move"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>"><input type="hidden" name="dir" value="up"><button class="icon-btn" title="Monter" <?= $i === 0 ? 'disabled style="opacity:.3;"' : '' ?>>▲</button></form>
-            <form method="post" style="display:inline;"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="move"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>"><input type="hidden" name="dir" value="down"><button class="icon-btn" title="Descendre" <?= $i === count($cats) - 1 ? 'disabled style="opacity:.3;"' : '' ?>>▼</button></form>
+            <form method="post" style="display:inline;"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="move"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>"><input type="hidden" name="dir" value="up"><button class="icon-btn" title="Monter" <?= $i === 0 ? 'disabled style="opacity:.3;"' : '' ?>><i class="fa-solid fa-chevron-up"></i></button></form>
+            <form method="post" style="display:inline;"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="move"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>"><input type="hidden" name="dir" value="down"><button class="icon-btn" title="Descendre" <?= $i === count($cats) - 1 ? 'disabled style="opacity:.3;"' : '' ?>><i class="fa-solid fa-chevron-down"></i></button></form>
             <form method="post" style="display:inline;" onsubmit="return confirm('Supprimer cette catégorie ? Les plats associés resteront mais sans catégorie.');">
               <input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
-              <button class="icon-btn danger" title="Supprimer">✕</button>
+              <button class="icon-btn danger" title="Supprimer"><i class="fa-solid fa-trash"></i></button>
             </form>
           </td>
         </tr>
