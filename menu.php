@@ -2009,7 +2009,7 @@ html[dir="rtl"] .cust-current-dish-banner {
   <!-- Section 1: Nos Spécialités -->
   <div class="section-head">
     <h2 class="section-title" id="sectionTitleSpecialties">Nos Spécialités</h2>
-    <div class="pill-popular" id="badgePopular">★ Populaire</div>
+    <div class="pill-popular" id="badgePopular">Populaire</div>
   </div>
 
   <!-- Horizontal Categories Carousel (Sticky with Navbar) -->
@@ -2058,16 +2058,16 @@ html[dir="rtl"] .cust-current-dish-banner {
         $flag = strtolower((string)$d['flags']);
         if (str_contains($flag, 'best') || str_contains($flag, 'bestseller')) {
             $badgeClass = 'bestseller';
-            $badgeText = '★ Best Seller';
+            $badgeText = 'Best Seller';
         } elseif (str_contains($flag, 'nouveau') || str_contains($flag, 'new')) {
             $badgeClass = 'nouveau';
             $badgeText = '🔥 Nouveau';
         } elseif (str_contains($flag, 'populaire')) {
             $badgeClass = 'populaire';
-            $badgeText = '★ Populaire';
+            $badgeText = 'Populaire';
         } elseif ((int)$d['is_special'] === 1) {
             $badgeClass = 'nouveau';
-            $badgeText = '★ Chef Special';
+            $badgeText = 'Chef Special';
         }
       ?>
       <!-- Tapping the card opens the Bottom Sheet sliding up to navbar! -->
@@ -2447,7 +2447,7 @@ let currentLang = localStorage.getItem('maison_sola_lang') || 'fr';
 const I18N = {
   fr: {
     specialties: "Nos Spécialités",
-    popular: "★ Populaire",
+    popular: "Populaire",
     all: "Tout",
     our_dishes: "Nos Plats",
     search_placeholder: "Rechercher un plat...",
@@ -2496,7 +2496,7 @@ const I18N = {
   },
   en: {
     specialties: "Our Specialties",
-    popular: "★ Popular",
+    popular: "Popular",
     all: "All",
     our_dishes: "Our Dishes",
     search_placeholder: "Search a dish...",
@@ -2545,7 +2545,7 @@ const I18N = {
   },
   ar: {
     specialties: "أطباقنا المميزة",
-    popular: "★ الأكثر طلباً",
+    popular: "الأكثر طلباً",
     all: "الكل",
     our_dishes: "قائمتنا",
     search_placeholder: "ابحث عن وجبة...",
