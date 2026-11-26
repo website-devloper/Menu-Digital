@@ -146,7 +146,7 @@ $firstPhoto = !empty($dishes[0]['photo']) ? $dishes[0]['photo'] : 'dish_12_v1.jp
   --new-badge-bg: #FFF0EB;
   --new-badge-text: #C2410C;
   --new-badge-border: #FDC7B5;
-  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-serif: 'Plus Jakarta Sans', var(--font-sans), sans-serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-logo: 'Cinzel', serif;
   --shadow-card: 0 4px 18px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
@@ -160,14 +160,16 @@ html {
   overflow-x: clip;
 }
 
+html { background: #141715; }
 body {
   font-family: var(--font-sans);
   background: var(--bg-canvas);
   color: var(--text-dark);
   line-height: 1.45;
   overflow-x: clip;
-  padding-bottom: 110px;
+  padding-bottom: 0;
 }
+.app-luxury-footer { padding-bottom: 130px; }
 
 /* App Header */
 .app-header {
@@ -377,11 +379,11 @@ html[dir="rtl"] .cust-current-dish-banner {
   margin-bottom: 14px;
 }
 .section-title {
-  font-family: var(--font-serif);
+  font-family: 'Plus Jakarta Sans', var(--font-sans), sans-serif;
   font-size: 26px;
   font-weight: 900;
   color: var(--text-dark);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
 }
 
 .pill-popular {

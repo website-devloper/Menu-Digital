@@ -15,22 +15,22 @@ $NAV = [
 ];
 
 function nav_icon(string $k): string {
-  // Material Symbols Rounded (Google Fonts). Loaded via @import in /shared/theme.css.
+  // Font Awesome 6 Free (solid) icons. CSS loaded in <head> below.
   $map = [
-    'grid'         => 'space_dashboard',
-    'shopping-bag' => 'shopping_bag',
-    'layers'       => 'category',
-    'utensils'     => 'restaurant_menu',
-    'qr'           => 'qr_code_2',
-    'camera'       => 'photo_camera',
-    'calendar'     => 'event',
-    'tag'          => 'sell',
-    'cog'          => 'settings',
-    'logout'       => 'logout',
+    'grid'         => 'fa-gauge-high',
+    'shopping-bag' => 'fa-bag-shopping',
+    'layers'       => 'fa-layer-group',
+    'utensils'     => 'fa-utensils',
+    'qr'           => 'fa-qrcode',
+    'camera'       => 'fa-camera',
+    'calendar'     => 'fa-calendar-days',
+    'tag'          => 'fa-tag',
+    'cog'          => 'fa-gear',
+    'logout'       => 'fa-right-from-bracket',
   ];
-  $name = $map[$k] ?? '';
-  if ($name === '') return '';
-  return "<span class=\"msi sm\" aria-hidden=\"true\">{$name}</span>";
+  $cls = $map[$k] ?? '';
+  if ($cls === '') return '';
+  return "<i class=\"fa-solid {$cls} nav-fa\" aria-hidden=\"true\"></i>";
 }
 ?><!doctype html>
 <html lang="fr">
@@ -43,6 +43,7 @@ function nav_icon(string $k): string {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
   .app { display:grid; grid-template-columns: 240px 1fr; min-height:100vh; }
   @media (max-width: 860px) { .app { grid-template-columns: 1fr; } }
@@ -75,13 +76,16 @@ function nav_icon(string $k): string {
     transition: var(--transition); white-space: nowrap;
   }
   .nav-link .msi { font-size: 20px; opacity: .9; }
+  .nav-link .nav-fa { font-size: 16px; width: 20px; text-align: center; opacity: .9; }
   .nav-link:hover { background: rgba(255,255,255,.08); color:#fff; }
+  .nav-link:hover .nav-fa { opacity: 1; }
   .nav-link.active {
     background: linear-gradient(135deg, var(--gold), var(--amber));
     color:#241017; font-weight: 900;
     box-shadow: 0 10px 24px rgba(241,172,24,.38);
   }
   .nav-link.active .msi { opacity: 1; font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 24; }
+  .nav-link.active .nav-fa { opacity: 1; color: #241017; }
   .side-foot { margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(247,243,236,.1); display:grid; gap: 8px; }
   .side-user {
     display:flex; align-items:center; gap:10px; padding: 10px 12px;
